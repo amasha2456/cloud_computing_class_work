@@ -72,7 +72,6 @@ export async function createRegistration(req: Request, res: Response) {
       }
       throw e;
     }
-    console.log(event.seatsavailable, SEATS_AVAILABLE_THRESHOLD);
     if (
       event.seatsavailable < SEATS_AVAILABLE_THRESHOLD ||
       ticketcount > event.seatsavailable
@@ -111,6 +110,20 @@ export async function createRegistration(req: Request, res: Response) {
       await updateEventSeats(eventId, event.seatsavailable - ticketcount);
     } catch (e) {
       console.error("Failed to update event seatsAvailable", e);
+    }
+
+    try {
+      await sendEmail(
+        email,
+        "Registration Confirmed",
+        `
+        <p>Dear ${attendeeName},</p>
+        <p>Your registration for <strong>${event.title}</strong> is confirmed for ${ticketcount} ticket(s).</p>
+        <p>We look forward to seeing you there!</p>
+        `,
+      );
+    } catch (e) {
+      console.error("Failed to send registration confirmation email", e);
     }
 
     return res.status(201).json(result.rows[0]);
