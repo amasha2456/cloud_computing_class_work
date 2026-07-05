@@ -7,12 +7,14 @@ const EVENT_SERVICE_URL = process.env.EVENT_SERVICE_URL;
 const EMAIL_SERVICE_URL = process.env.EMAIL_SERVICE_URL;
 const SEATS_AVAILABLE_THRESHOLD = Number(process.env.SEATS_AVAILABLE_THRESHOLD);
 async function getEventById(eventId: string) {
-  const result = await axios.get(`${EVENT_SERVICE_URL}/event/get/${eventId}`);
+  const result = await axios.get(
+    `${EVENT_SERVICE_URL}/api/v1/event/get/${eventId}`,
+  );
   return result.data;
 }
 
 async function sendEmail(to: string, subject: string, html: string) {
-  const res = await axios.post(`${EMAIL_SERVICE_URL}/send-email`, {
+  const res = await axios.post(`${EMAIL_SERVICE_URL}/api/v1/email/send-email`, {
     to,
     subject,
     html,

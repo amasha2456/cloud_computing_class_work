@@ -11,12 +11,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// app.use("/events", eventRoutes);
-
-app.get("/hello", (_, res) => {
-  res.status(201).send("hello");
-});
-app.use("/api", eventRoutes);
+app.use("/api/v1", eventRoutes);
 
 const PORT = Number(process.env.PORT) || 5001;
 

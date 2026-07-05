@@ -11,7 +11,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.use("/api", registrationRoutes);
+app.use("/api/v1", registrationRoutes);
 
 const PORT = Number(process.env.PORT) || 5003;
 

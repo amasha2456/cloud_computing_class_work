@@ -10,9 +10,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// app.use("/events", eventRoutes);
-
-app.post("/send-email", handler);
+app.post("/api/v1/email/send-email", handler);
 
 const PORT = Number(process.env.PORT) || 5004;
 
