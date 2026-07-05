@@ -1,0 +1,39 @@
+body {
+	background: #fff;
+	color: #333;
+}
+
+.admin-navbar {
+	margin-bottom: 0;
+}
+
+.admin-container {
+	padding-top: 30px;
+	padding-bottom: 60px;
+}
+
+.admin-panel-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin: 20px 0;
+}
+
+.tab-content {
+	padding-top: 20px;
+}
+
+#events-alert p,
+#programs-alert p,
+#registrations-alert p {
+	padding: 10px 15px;
+	border-radius: 4px;
+}
+
+.text-danger {
+	color: #a94442;
+}
+
+.text-success {
+	color: #3c763d;
+}

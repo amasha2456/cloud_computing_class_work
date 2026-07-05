@@ -22,6 +22,14 @@ async function sendEmail(to: string, subject: string, html: string) {
   return res.data;
 }
 
+async function updateEventSeats(eventId: string, seatsAvailable: number) {
+  const res = await axios.put(
+    `${EVENT_SERVICE_URL}/api/v1/event/update/${eventId}`,
+    { seatsAvailable },
+  );
+  return res.data;
+}
+
 export async function createRegistration(req: Request, res: Response) {
   try {
     if (!req.body) {
@@ -53,13 +61,22 @@ export async function createRegistration(req: Request, res: Response) {
     }
 
     //call event service to check if event is valid
-    const event = await getEventById(eventId);
-    if (event.length === 0) {
-      return res.status(404).json({
-        message: "Event not found",
-      });
+    let event;
+    try {
+      event = await getEventById(eventId);
+    } catch (e: any) {
+      if (e.response?.status === 404) {
+        return res.status(404).json({
+          message: "Event not found",
+        });
+      }
+      throw e;
     }
-    if (event[0].seatsAvailable < SEATS_AVAILABLE_THRESHOLD) {
+    console.log(event.seatsavailable, SEATS_AVAILABLE_THRESHOLD);
+    if (
+      event.seatsavailable < SEATS_AVAILABLE_THRESHOLD ||
+      ticketcount > event.seatsavailable
+    ) {
       await sendEmail(
         email,
         "Event Registration",
@@ -75,7 +92,7 @@ export async function createRegistration(req: Request, res: Response) {
     }
     const result = await pool.query(
       `
-      INSERT INTO programs
+      INSERT INTO registration
       (
         registrationId,
         eventId,
@@ -89,6 +106,12 @@ export async function createRegistration(req: Request, res: Response) {
       `,
       [registrationId, eventId, attendeeName, email, ticketcount, timeStamp],
     );
+
+    try {
+      await updateEventSeats(eventId, event.seatsavailable - ticketcount);
+    } catch (e) {
+      console.error("Failed to update event seatsAvailable", e);
+    }
 
     return res.status(201).json(result.rows[0]);
   } catch (e: any) {
