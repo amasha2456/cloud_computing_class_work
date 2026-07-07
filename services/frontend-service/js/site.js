@@ -1,6 +1,12 @@
 function escapeHtml(str) {
   return String(str == null ? "" : str).replace(/[&<>"']/g, function (c) {
-    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    return {
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;",
+    }[c];
   });
 }
 
@@ -24,12 +30,22 @@ function loadPrograms() {
           return (
             '<div class="col-md-12 col-sm-12">' +
             "<h6>" +
-            '<span><i class="fa fa-clock-o"></i> ' + formatDateTime(program.datetime) + "</span> " +
-            '<span><i class="fa fa-tag"></i> ' + escapeHtml(program.track) + "</span>" +
+            '<span><i class="fa fa-clock-o"></i> ' +
+            formatDateTime(program.datetime) +
+            "</span> " +
+            '<span><i class="fa fa-tag"></i> ' +
+            escapeHtml(program.track) +
+            "</span>" +
             "</h6>" +
-            "<h3>" + escapeHtml(program.sessionname) + "</h3>" +
-            "<h4>By " + escapeHtml(program.speakername) + "</h4>" +
-            "<p>Duration: " + escapeHtml(program.duration) + "</p>" +
+            "<h3>" +
+            escapeHtml(program.sessionname) +
+            "</h3>" +
+            "<h4>By " +
+            escapeHtml(program.speakername) +
+            "</h4>" +
+            "<p>Duration(in minutes) : " +
+            escapeHtml(program.duration) +
+            "</p>" +
             '<div class="program-divider col-md-12 col-sm-12"></div>' +
             "</div>"
           );
@@ -37,7 +53,8 @@ function loadPrograms() {
         .join("");
     })
     .catch(function (err) {
-      container.innerHTML = "<p>Could not load programs (" + escapeHtml(err.message) + ").</p>";
+      container.innerHTML =
+        "<p>Could not load programs (" + escapeHtml(err.message) + ").</p>";
     });
 }
 
@@ -56,8 +73,12 @@ function loadRegisterEvents() {
         events
           .map(function (event) {
             return (
-              '<option value="' + escapeHtml(event.eventid) + '">' +
-              escapeHtml(event.title) + " &mdash; " + escapeHtml(event.venue) +
+              '<option value="' +
+              escapeHtml(event.eventid) +
+              '">' +
+              escapeHtml(event.title) +
+              " &mdash; " +
+              escapeHtml(event.venue) +
               "</option>"
             );
           })
@@ -92,17 +113,21 @@ function handleRegisterSubmit(evt) {
 
   RegistrationsAPI.create(payload)
     .then(function () {
-      messageBox.innerHTML = '<p class="text-success">Registration successful!</p>';
+      messageBox.innerHTML =
+        '<p class="text-success">Registration successful!</p>';
       document.getElementById("register-form").reset();
       loadRegisterEvents();
     })
     .catch(function (err) {
-      messageBox.innerHTML = '<p class="text-danger">' + escapeHtml(err.message) + "</p>";
+      messageBox.innerHTML =
+        '<p class="text-danger">' + escapeHtml(err.message) + "</p>";
     });
 }
 
 document.addEventListener("DOMContentLoaded", function () {
   loadPrograms();
   loadRegisterEvents();
-  document.getElementById("register-form").addEventListener("submit", handleRegisterSubmit);
+  document
+    .getElementById("register-form")
+    .addEventListener("submit", handleRegisterSubmit);
 });

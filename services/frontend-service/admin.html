@@ -1,250 +1,387 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<title>Admin - New Event</title>
-<meta charset="UTF-8">
-<meta http-equiv="X-UA-Compatible" content="IE=Edge">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <head>
+    <title>Admin - New Event</title>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1"
+    />
 
-<link rel="stylesheet" href="css/bootstrap.min.css">
-<link rel="stylesheet" href="css/font-awesome.min.css">
-<link rel="stylesheet" href="css/style.css">
-<link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+    <link rel="stylesheet" href="css/font-awesome.min.css" />
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/admin.css" />
 
-<link href='https://fonts.googleapis.com/css?family=Poppins:400,500,600' rel='stylesheet' type='text/css'>
+    <link
+      href="https://fonts.googleapis.com/css?family=Poppins:400,500,600"
+      rel="stylesheet"
+      type="text/css"
+    />
+  </head>
+  <body>
+    <div class="navbar navbar-default admin-navbar" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <a href="index.html" class="navbar-brand">New Event &mdash; Admin</a>
+        </div>
+        <ul class="nav navbar-nav navbar-right">
+          <li><a href="index.html">Back to site</a></li>
+        </ul>
+      </div>
+    </div>
 
-</head>
-<body>
+    <div class="container admin-container">
+      <ul class="nav nav-tabs" role="tablist">
+        <li role="presentation" class="active">
+          <a
+            href="#events-panel"
+            aria-controls="events-panel"
+            role="tab"
+            data-toggle="tab"
+            >Events</a
+          >
+        </li>
+        <li role="presentation">
+          <a
+            href="#programs-panel"
+            aria-controls="programs-panel"
+            role="tab"
+            data-toggle="tab"
+            >Programs</a
+          >
+        </li>
+        <li role="presentation">
+          <a
+            href="#registrations-panel"
+            aria-controls="registrations-panel"
+            role="tab"
+            data-toggle="tab"
+            >Registrations</a
+          >
+        </li>
+      </ul>
 
-<div class="navbar navbar-default admin-navbar" role="navigation">
-	<div class="container">
-		<div class="navbar-header">
-			<a href="index.html" class="navbar-brand">New Event &mdash; Admin</a>
-		</div>
-		<ul class="nav navbar-nav navbar-right">
-			<li><a href="index.html">Back to site</a></li>
-		</ul>
-	</div>
-</div>
+      <div class="tab-content">
+        <!-- EVENTS PANEL -->
+        <div role="tabpanel" class="tab-pane active" id="events-panel">
+          <div class="admin-panel-header">
+            <h3>Events</h3>
+            <button class="btn btn-danger" id="event-add-btn">
+              Add New Event
+            </button>
+          </div>
+          <div id="events-alert"></div>
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Venue</th>
+                <th>Date/Time</th>
+                <th>Ticket Price</th>
+                <th>Capacity</th>
+                <th>Seats Available</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="events-table-body">
+              <tr>
+                <td colspan="7">Loading&hellip;</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
-<div class="container admin-container">
+        <!-- PROGRAMS PANEL -->
+        <div role="tabpanel" class="tab-pane" id="programs-panel">
+          <div class="admin-panel-header">
+            <h3>Programs</h3>
+            <button class="btn btn-danger" id="program-add-btn">
+              Add New Program
+            </button>
+          </div>
+          <div id="programs-alert"></div>
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Session Name</th>
+                <th>Track</th>
+                <th>Speaker</th>
+                <th>Date/Time</th>
+                <th>Duration (in minutes)</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="programs-table-body">
+              <tr>
+                <td colspan="6">Loading&hellip;</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
-	<ul class="nav nav-tabs" role="tablist">
-		<li role="presentation" class="active"><a href="#events-panel" aria-controls="events-panel" role="tab" data-toggle="tab">Events</a></li>
-		<li role="presentation"><a href="#programs-panel" aria-controls="programs-panel" role="tab" data-toggle="tab">Programs</a></li>
-		<li role="presentation"><a href="#registrations-panel" aria-controls="registrations-panel" role="tab" data-toggle="tab">Registrations</a></li>
-	</ul>
+        <!-- REGISTRATIONS PANEL -->
+        <div role="tabpanel" class="tab-pane" id="registrations-panel">
+          <div class="admin-panel-header">
+            <h3>Registrations</h3>
+            <button class="btn btn-danger" id="registration-add-btn">
+              Add New Registration
+            </button>
+          </div>
+          <div id="registrations-alert"></div>
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Event</th>
+                <th>Attendee Name</th>
+                <th>Email</th>
+                <th>Tickets</th>
+                <th>Timestamp</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="registrations-table-body">
+              <tr>
+                <td colspan="6">Loading&hellip;</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
 
-	<div class="tab-content">
+    <!-- EVENT MODAL -->
+    <div class="modal fade" id="event-modal" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <form id="event-form">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal">
+                &times;
+              </button>
+              <h4 class="modal-title" id="event-modal-title">Add Event</h4>
+            </div>
+            <div class="modal-body">
+              <input type="hidden" id="event-id" />
+              <div class="form-group">
+                <label>Title</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="event-title"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label>Venue</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="event-venue"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label>Date/Time</label>
+                <input
+                  type="datetime-local"
+                  class="form-control"
+                  id="event-datetime"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label>Ticket Price</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  class="form-control"
+                  id="event-ticketprice"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label>Capacity</label>
+                <input
+                  type="number"
+                  min="1"
+                  class="form-control"
+                  id="event-capacity"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label>Seats Available</label>
+                <input
+                  type="number"
+                  min="0"
+                  class="form-control"
+                  id="event-seatsavailable"
+                  required
+                />
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn btn-default"
+                data-dismiss="modal"
+              >
+                Cancel
+              </button>
+              <button type="submit" class="btn btn-danger">Save</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
 
-		<!-- EVENTS PANEL -->
-		<div role="tabpanel" class="tab-pane active" id="events-panel">
-			<div class="admin-panel-header">
-				<h3>Events</h3>
-				<button class="btn btn-danger" id="event-add-btn">Add New Event</button>
-			</div>
-			<div id="events-alert"></div>
-			<table class="table table-striped">
-				<thead>
-					<tr>
-						<th>Title</th>
-						<th>Venue</th>
-						<th>Date/Time</th>
-						<th>Ticket Price</th>
-						<th>Capacity</th>
-						<th>Seats Available</th>
-						<th>Actions</th>
-					</tr>
-				</thead>
-				<tbody id="events-table-body">
-					<tr><td colspan="7">Loading&hellip;</td></tr>
-				</tbody>
-			</table>
-		</div>
+    <!-- PROGRAM MODAL -->
+    <div class="modal fade" id="program-modal" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <form id="program-form">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal">
+                &times;
+              </button>
+              <h4 class="modal-title" id="program-modal-title">Add Program</h4>
+            </div>
+            <div class="modal-body">
+              <input type="hidden" id="program-id" />
+              <div class="form-group">
+                <label>Session Name</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="program-sessionname"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label>Track</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="program-track"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label>Speaker Name</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="program-speakername"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label>Date/Time</label>
+                <input
+                  type="datetime-local"
+                  class="form-control"
+                  id="program-datetime"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label>Duration ((in minutes))</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="program-duration"
+                  placeholder="e.g. 45 mins"
+                  required
+                />
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn btn-default"
+                data-dismiss="modal"
+              >
+                Cancel
+              </button>
+              <button type="submit" class="btn btn-danger">Save</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
 
-		<!-- PROGRAMS PANEL -->
-		<div role="tabpanel" class="tab-pane" id="programs-panel">
-			<div class="admin-panel-header">
-				<h3>Programs</h3>
-				<button class="btn btn-danger" id="program-add-btn">Add New Program</button>
-			</div>
-			<div id="programs-alert"></div>
-			<table class="table table-striped">
-				<thead>
-					<tr>
-						<th>Session Name</th>
-						<th>Track</th>
-						<th>Speaker</th>
-						<th>Date/Time</th>
-						<th>Duration</th>
-						<th>Actions</th>
-					</tr>
-				</thead>
-				<tbody id="programs-table-body">
-					<tr><td colspan="6">Loading&hellip;</td></tr>
-				</tbody>
-			</table>
-		</div>
+    <!-- REGISTRATION MODAL -->
+    <div class="modal fade" id="registration-modal" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <form id="registration-form">
+            <div class="modal-header">
+              <button type="button" class="close" data-dismiss="modal">
+                &times;
+              </button>
+              <h4 class="modal-title" id="registration-modal-title">
+                Add Registration
+              </h4>
+            </div>
+            <div class="modal-body">
+              <input type="hidden" id="registration-id" />
+              <div class="form-group">
+                <label>Event</label>
+                <select class="form-control" id="registration-eventid" required>
+                  <option value="">Loading events&hellip;</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Attendee Name</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="registration-attendeename"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label>Email</label>
+                <input
+                  type="email"
+                  class="form-control"
+                  id="registration-email"
+                  required
+                />
+              </div>
+              <div class="form-group">
+                <label>Ticket Count</label>
+                <input
+                  type="number"
+                  min="1"
+                  class="form-control"
+                  id="registration-ticketcount"
+                  required
+                />
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button
+                type="button"
+                class="btn btn-default"
+                data-dismiss="modal"
+              >
+                Cancel
+              </button>
+              <button type="submit" class="btn btn-danger">Save</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
 
-		<!-- REGISTRATIONS PANEL -->
-		<div role="tabpanel" class="tab-pane" id="registrations-panel">
-			<div class="admin-panel-header">
-				<h3>Registrations</h3>
-				<button class="btn btn-danger" id="registration-add-btn">Add New Registration</button>
-			</div>
-			<div id="registrations-alert"></div>
-			<table class="table table-striped">
-				<thead>
-					<tr>
-						<th>Event</th>
-						<th>Attendee Name</th>
-						<th>Email</th>
-						<th>Tickets</th>
-						<th>Timestamp</th>
-						<th>Actions</th>
-					</tr>
-				</thead>
-				<tbody id="registrations-table-body">
-					<tr><td colspan="6">Loading&hellip;</td></tr>
-				</tbody>
-			</table>
-		</div>
-
-	</div>
-</div>
-
-
-<!-- EVENT MODAL -->
-<div class="modal fade" id="event-modal" tabindex="-1" role="dialog">
-	<div class="modal-dialog" role="document">
-		<div class="modal-content">
-			<form id="event-form">
-				<div class="modal-header">
-					<button type="button" class="close" data-dismiss="modal">&times;</button>
-					<h4 class="modal-title" id="event-modal-title">Add Event</h4>
-				</div>
-				<div class="modal-body">
-					<input type="hidden" id="event-id">
-					<div class="form-group">
-						<label>Title</label>
-						<input type="text" class="form-control" id="event-title" required>
-					</div>
-					<div class="form-group">
-						<label>Venue</label>
-						<input type="text" class="form-control" id="event-venue" required>
-					</div>
-					<div class="form-group">
-						<label>Date/Time</label>
-						<input type="datetime-local" class="form-control" id="event-datetime" required>
-					</div>
-					<div class="form-group">
-						<label>Ticket Price</label>
-						<input type="number" step="0.01" min="0" class="form-control" id="event-ticketprice" required>
-					</div>
-					<div class="form-group">
-						<label>Capacity</label>
-						<input type="number" min="1" class="form-control" id="event-capacity" required>
-					</div>
-					<div class="form-group">
-						<label>Seats Available</label>
-						<input type="number" min="0" class="form-control" id="event-seatsavailable" required>
-					</div>
-				</div>
-				<div class="modal-footer">
-					<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-					<button type="submit" class="btn btn-danger">Save</button>
-				</div>
-			</form>
-		</div>
-	</div>
-</div>
-
-<!-- PROGRAM MODAL -->
-<div class="modal fade" id="program-modal" tabindex="-1" role="dialog">
-	<div class="modal-dialog" role="document">
-		<div class="modal-content">
-			<form id="program-form">
-				<div class="modal-header">
-					<button type="button" class="close" data-dismiss="modal">&times;</button>
-					<h4 class="modal-title" id="program-modal-title">Add Program</h4>
-				</div>
-				<div class="modal-body">
-					<input type="hidden" id="program-id">
-					<div class="form-group">
-						<label>Session Name</label>
-						<input type="text" class="form-control" id="program-sessionname" required>
-					</div>
-					<div class="form-group">
-						<label>Track</label>
-						<input type="text" class="form-control" id="program-track" required>
-					</div>
-					<div class="form-group">
-						<label>Speaker Name</label>
-						<input type="text" class="form-control" id="program-speakername" required>
-					</div>
-					<div class="form-group">
-						<label>Date/Time</label>
-						<input type="datetime-local" class="form-control" id="program-datetime" required>
-					</div>
-					<div class="form-group">
-						<label>Duration</label>
-						<input type="text" class="form-control" id="program-duration" placeholder="e.g. 45 mins" required>
-					</div>
-				</div>
-				<div class="modal-footer">
-					<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-					<button type="submit" class="btn btn-danger">Save</button>
-				</div>
-			</form>
-		</div>
-	</div>
-</div>
-
-<!-- REGISTRATION MODAL -->
-<div class="modal fade" id="registration-modal" tabindex="-1" role="dialog">
-	<div class="modal-dialog" role="document">
-		<div class="modal-content">
-			<form id="registration-form">
-				<div class="modal-header">
-					<button type="button" class="close" data-dismiss="modal">&times;</button>
-					<h4 class="modal-title" id="registration-modal-title">Add Registration</h4>
-				</div>
-				<div class="modal-body">
-					<input type="hidden" id="registration-id">
-					<div class="form-group">
-						<label>Event</label>
-						<select class="form-control" id="registration-eventid" required>
-							<option value="">Loading events&hellip;</option>
-						</select>
-					</div>
-					<div class="form-group">
-						<label>Attendee Name</label>
-						<input type="text" class="form-control" id="registration-attendeename" required>
-					</div>
-					<div class="form-group">
-						<label>Email</label>
-						<input type="email" class="form-control" id="registration-email" required>
-					</div>
-					<div class="form-group">
-						<label>Ticket Count</label>
-						<input type="number" min="1" class="form-control" id="registration-ticketcount" required>
-					</div>
-				</div>
-				<div class="modal-footer">
-					<button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-					<button type="submit" class="btn btn-danger">Save</button>
-				</div>
-			</form>
-		</div>
-	</div>
-</div>
-
-
-<script src="js/jquery.js"></script>
-<script src="js/bootstrap.min.js"></script>
-<script src="js/config.js"></script>
-<script src="js/api.js"></script>
-<script src="js/admin.js"></script>
-
-</body>
+    <script src="js/jquery.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/admin.js"></script>
+  </body>
 </html>
