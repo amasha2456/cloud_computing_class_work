@@ -94,24 +94,37 @@ export async function getAllEvent(req: Request, res: Response) {
 
 export async function deleteEvent(req: Request, res: Response) {
   const { eventId } = req.params;
-  const result = await pool.query(
-    `
-  DELETE 
-  FROM events
-  WHERE eventId = $1
-  `,
-    [eventId],
-  );
+  try {
+    const result = await pool.query(
+      `
+    DELETE
+    FROM events
+    WHERE eventId = $1
+    RETURNING *
+    `,
+      [eventId],
+    );
 
-  if (result.rows.length === 0) {
-    return res.status(404).json({
-      message: "Event not found",
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        message: "Event not found",
+      });
+    }
+
+    return res.status(200).json({
+      message: "Event deleted successfully",
+    });
+  } catch (e: any) {
+    if (e.code === "23503") {
+      return res.status(409).json({
+        message: "Cannot delete event because it has existing registrations",
+      });
+    }
+    console.error(e);
+    return res.status(500).json({
+      message: e.message || "Failed to delete event",
     });
   }
-
-  return res.status(200).json({
-    message: "Event deleted successfully",
-  });
 }
 
 export async function UpdateEvent(req: Request, res: Response) {

@@ -8,6 +8,11 @@ services:
     ports:
       - "8080:80"
 
+    depends_on:
+      - event-service
+      - program-service
+      - registration-service
+
   postgres:
     image: postgres:16
 
@@ -22,6 +27,79 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+
+  event-service:
+    build:
+      context: ./services/event-service
+
+    environment:
+      PORT: 5001
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: newevent
+
+    ports:
+      - "5001:5001"
+
+    depends_on:
+      - postgres
+
+  program-service:
+    build:
+      context: ./services/program-service
+
+    environment:
+      PORT: 5002
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: newevent
+
+    ports:
+      - "5002:5002"
+
+    depends_on:
+      - postgres
+
+  registration-service:
+    build:
+      context: ./services/registration-service
+
+    environment:
+      PORT: 5003
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: newevent
+      EVENT_SERVICE_URL: http://event-service:5001
+      EMAIL_SERVICE_URL: http://email-service:5004
+      SEATS_AVAILABLE_THRESHOLD: 10
+
+    ports:
+      - "5003:5003"
+
+    depends_on:
+      - postgres
+      - event-service
+      - email-service
+
+  email-service:
+    build:
+      context: ./services/email-service
+
+    environment:
+      PORT: 5004
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_REGION: ${AWS_REGION}
+      SES_FROM_EMAIL: ${SES_FROM_EMAIL}
+
+    ports:
+      - "5004:5004"
 
 volumes:
   postgres_data:
