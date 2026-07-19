@@ -1,4 +1,4 @@
-name: Deploy (Blue-Green)
+name: Deploy (Blue-Green to AWS)
 
 on:
   workflow_run:
@@ -13,34 +13,31 @@ permissions:
 jobs:
   deploy:
     if: github.event.workflow_run.conclusion == 'success'
-    runs-on: self-hosted
-    env:
-      CLUSTER_NAME: newevent
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
 
-      - name: Compute image tag
-        run: echo "TAG=$(git rev-parse --short HEAD)" >> "$GITHUB_ENV"
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v4
 
       - name: Log in to GitHub Container Registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
 
-      - name: Build, tag, and push images (audit trail in GHCR)
+      - name: Write kubeconfig for the real k3s cluster
         run: |
-          REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
-          for svc in frontend-service event-service program-service registration-service email-service auth-service analytics-service; do
-            docker build -t "newevent/${svc}:${TAG}" "./services/${svc}"
-            docker tag "newevent/${svc}:${TAG}" "ghcr.io/${REPO_LOWER}-${svc}:${TAG}"
-            docker push "ghcr.io/${REPO_LOWER}-${svc}:${TAG}"
-          done
+          mkdir -p k8s/aws
+          echo "${{ secrets.KUBECONFIG }}" > k8s/aws/kubeconfig
+          chmod 600 k8s/aws/kubeconfig
 
-      - name: Blue-green cutover for each service
+      - name: Write .env (source for the K8s app-secrets Secret)
+        run: echo "${{ secrets.APP_ENV_FILE }}" > .env
+
+      - name: Deploy (build, push to GHCR, blue-green cutover)
         run: |
-          for svc in frontend-service event-service program-service registration-service email-service auth-service analytics-service; do
-            bash k8s/blue-green-deploy.sh "$svc" "newevent/${svc}:${TAG}"
-          done
-
-      - name: Verify rollout
-        run: kubectl get pods -n newevent
+          export TAG="$(git rev-parse --short HEAD)"
+          bash k8s/aws/deploy-aws.sh

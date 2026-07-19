@@ -1,3 +1,5 @@
 .env
 node_modules/
 dist/
+k8s/aws/kubeconfig
+k8s/aws/*.pem

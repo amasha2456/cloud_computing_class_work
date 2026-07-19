@@ -34,7 +34,14 @@ fi
 echo "[$SERVICE] current active slot: $CURRENT_SLOT -> deploying $IMAGE to slot: $TARGET_SLOT"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-bash "$SCRIPT_DIR/load-image.sh" "$IMAGE"
+case "$IMAGE" in
+  ghcr.io/*)
+    echo "[$SERVICE] image is a registry reference - the cluster will pull it directly, no local load needed."
+    ;;
+  *)
+    bash "$SCRIPT_DIR/load-image.sh" "$IMAGE"
+    ;;
+esac
 
 kubectl set image "deployment/${SERVICE}-${TARGET_SLOT}" "${SERVICE}=${IMAGE}" -n "$NAMESPACE"
 kubectl scale "deployment/${SERVICE}-${TARGET_SLOT}" --replicas=1 -n "$NAMESPACE"
@@ -44,9 +51,18 @@ echo "[$SERVICE] smoke-testing $TARGET_SLOT slot..."
 LOCAL_PORT=$((10000 + RANDOM % 10000))
 kubectl port-forward "deployment/${SERVICE}-${TARGET_SLOT}" "${LOCAL_PORT}:${CONTAINER_PORT}" -n "$NAMESPACE" >/tmp/pf-${SERVICE}.log 2>&1 &
 PF_PID=$!
-sleep 2
 
-HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:${LOCAL_PORT}${HEALTH_PATH}" || echo "000")
+# Port-forward tunnel setup time varies (near-instant for local kind,
+# a couple seconds for a remote cluster over the internet) - retry instead
+# of a single fixed-delay attempt.
+HTTP_CODE="000"
+for attempt in $(seq 1 10); do
+  sleep 1
+  HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:${LOCAL_PORT}${HEALTH_PATH}" || echo "000")
+  if [ "$HTTP_CODE" = "200" ]; then
+    break
+  fi
+done
 kill "$PF_PID" 2>/dev/null || true
 wait "$PF_PID" 2>/dev/null || true
 

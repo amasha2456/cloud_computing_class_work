@@ -1,0 +1,11 @@
+{
+  "name": "newevent-ec2-provision",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "description": "One-off provisioning script for the k3s EC2 node. Not part of any deployed service.",
+  "dependencies": {
+    "@aws-sdk/client-ec2": "^3.1090.0",
+    "@aws-sdk/client-ssm": "^3.1090.0"
+  }
+}
