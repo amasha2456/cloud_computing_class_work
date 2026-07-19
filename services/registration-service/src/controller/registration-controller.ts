@@ -27,7 +27,11 @@ async function updateEventSeats(eventId: string, seatsAvailable: number) {
   const res = await axios.put(
     `${EVENT_SERVICE_URL}/api/v1/event/update/${eventId}`,
     { seatsAvailable },
-    { headers: { Authorization: `Bearer ${process.env.INTERNAL_SERVICE_TOKEN}` } },
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.INTERNAL_SERVICE_TOKEN}`,
+      },
+    },
   );
   return res.data;
 }
@@ -75,6 +79,15 @@ export async function createRegistration(req: Request, res: Response) {
       throw e;
     }
     if (ticketcount > event.seatsavailable) {
+      triggerLowSeatsNotification({
+        eventId,
+        eventTitle: event.title,
+        attendeeName,
+        email,
+        remainingSeats: event.seatsavailable,
+      }).catch((e) => {
+        console.error("Failed to trigger low-seats notification", e);
+      });
       return res.status(400).json({
         message: "Not enough seats available",
       });
@@ -105,7 +118,13 @@ export async function createRegistration(req: Request, res: Response) {
     }
 
     if (newSeatsAvailable < SEATS_AVAILABLE_THRESHOLD) {
-      triggerLowSeatsNotification(eventId, newSeatsAvailable).catch((e) => {
+      triggerLowSeatsNotification({
+        eventId,
+        eventTitle: event.title,
+        attendeeName,
+        email,
+        remainingSeats: newSeatsAvailable,
+      }).catch((e) => {
         console.error("Failed to trigger low-seats notification", e);
       });
     }

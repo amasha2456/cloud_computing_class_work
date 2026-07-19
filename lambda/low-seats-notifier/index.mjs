@@ -4,35 +4,39 @@ const sesClient = new SESClient({});
 
 export const handler = async (event) => {
   const eventId = event?.eventId ?? "unknown";
+  const eventTitle = event?.eventTitle || eventId;
+  const attendeeName = event?.attendeeName || "there";
   const remainingSeats = event?.remainingSeats ?? "unknown";
   const threshold = event?.threshold ?? "unknown";
   const timestamp = event?.timestamp ?? new Date().toISOString();
 
-  const notifyEmail = process.env.SES_FROM_EMAIL;
+  const sourceEmail = process.env.SES_FROM_EMAIL;
+  const fallbackEmail = process.env.LOW_SEATS_NOTIFY_EMAIL || sourceEmail;
+  const notifyEmail = event?.email || fallbackEmail;
 
   const command = new SendEmailCommand({
-    Source: notifyEmail,
+    Source: sourceEmail,
     Destination: {
       ToAddresses: [notifyEmail],
     },
     Message: {
       Subject: {
-        Data: `Low Seats Alert: ${eventId}`,
+        Data: `Seats are running low: ${eventTitle}`,
       },
       Body: {
         Html: {
           Data: `
-            <p>An event has dropped below the seats-available threshold.</p>
+            <p>Hi ${attendeeName},</p>
+            <p>Thanks for registering for <strong>${eventTitle}</strong> &mdash; heads up, this event is almost full!</p>
             <ul>
-              <li><strong>Event ID:</strong> ${eventId}</li>
               <li><strong>Seats remaining:</strong> ${remainingSeats}</li>
               <li><strong>Threshold:</strong> ${threshold}</li>
-              <li><strong>Timestamp:</strong> ${timestamp}</li>
+              <li><strong>As of:</strong> ${timestamp}</li>
             </ul>
           `,
         },
         Text: {
-          Data: `Low seats alert for event ${eventId}. Remaining: ${remainingSeats} (threshold: ${threshold}) at ${timestamp}.`,
+          Data: `Hi ${attendeeName}, ${eventTitle} is almost full. Remaining: ${remainingSeats} (threshold: ${threshold}) as of ${timestamp}.`,
         },
       },
     },
@@ -43,6 +47,7 @@ export const handler = async (event) => {
   console.log("Low-seats notification sent", {
     eventId,
     remainingSeats,
+    notifyEmail,
     messageId: result.MessageId,
   });
 
