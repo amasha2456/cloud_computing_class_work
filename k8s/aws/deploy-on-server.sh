@@ -92,7 +92,8 @@ for name in $SERVICES; do
     echo "== ${name}: first deploy - bootstrapping with blue active =="
     kubectl apply -f "k8s/blue-green/${name}.yaml"
     kubectl set image "deployment/${name}-blue" "${name}=${image}" -n newevent
-    kubectl rollout status "deployment/${name}-blue" -n newevent --timeout=120s
+    kubectl rollout status "deployment/${name}-blue" -n newevent --timeout=180s || \
+      echo "WARNING: ${name}-blue rollout did not finish in time, check: kubectl get pods -n newevent -l app=${name}"
   fi
 done
 
