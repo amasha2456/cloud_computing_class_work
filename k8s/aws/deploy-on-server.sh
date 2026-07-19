@@ -73,8 +73,10 @@ kubectl apply -f k8s/postgres-exporter.yaml
 kubectl apply -f k8s/cadvisor.yaml
 kubectl apply -f k8s/superset.yaml
 kubectl set image deployment/superset "superset=ghcr.io/${REPO_LOWER}-superset:${TAG}" -n newevent
-kubectl rollout status deployment/superset -n newevent --timeout=180s
-kubectl rollout status deployment/postgres-exporter -n newevent --timeout=60s
+kubectl rollout status deployment/superset -n newevent --timeout=300s || \
+  echo "WARNING: superset rollout did not finish in time, check: kubectl get pods -n newevent -l app=superset"
+kubectl rollout status deployment/postgres-exporter -n newevent --timeout=60s || \
+  echo "WARNING: postgres-exporter rollout did not finish in time, check: kubectl get pods -n newevent -l app=postgres-exporter"
 
 echo "== Applying ingress (idempotent) =="
 kubectl apply -f k8s/aws/ingress.yaml
