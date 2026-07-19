@@ -6,7 +6,7 @@
   "version": 1,
   "refresh": "10s",
   "time": { "from": "now-1h", "to": "now" },
-  "description": "Per-container CPU and memory from cAdvisor. Series are labeled by raw container id rather than service name (this standalone cAdvisor DaemonSet doesn't get Docker Compose or Kubernetes pod/container labels). Filtered on image!=\"\" rather than a cgroup id path prefix, since that path convention (e.g. /docker/... vs /kubepods.../...) varies by container runtime and cgroup driver.",
+  "description": "Per-container CPU and memory from cAdvisor. This standalone cAdvisor DaemonSet has no containerd socket access, so it only sees raw cgroup paths with no image/name/label enrichment at all - filtering on those labels matches nothing. Instead filtered on id matching the leaf per-container cgroup (.../cri-containerd-<id>.scope), which excludes the aggregate pod/QoS/host slices (e.g. /kubepods.slice, /system.slice) that would otherwise dominate the totals.",
   "panels": [
     {
       "id": 1,
@@ -15,7 +15,7 @@
       "gridPos": { "h": 9, "w": 24, "x": 0, "y": 0 },
       "targets": [
         {
-          "expr": "sum(rate(container_cpu_usage_seconds_total{image!=\"\"}[1m])) by (id)",
+          "expr": "sum(rate(container_cpu_usage_seconds_total{id=~\".*cri-containerd-.+\\\\.scope$\"}[1m])) by (id)",
           "legendFormat": "{{id}}",
           "refId": "A"
         }
@@ -29,7 +29,7 @@
       "fieldConfig": { "defaults": { "unit": "bytes" }, "overrides": [] },
       "targets": [
         {
-          "expr": "container_memory_usage_bytes{image!=\"\"}",
+          "expr": "container_memory_usage_bytes{id=~\".*cri-containerd-.+\\\\.scope$\"}",
           "legendFormat": "{{id}}",
           "refId": "A"
         }
