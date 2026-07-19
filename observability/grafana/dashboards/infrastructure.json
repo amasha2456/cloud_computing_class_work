@@ -1,0 +1,39 @@
+{
+  "title": "Infrastructure (Containers)",
+  "uid": "infrastructure",
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "10s",
+  "time": { "from": "now-1h", "to": "now" },
+  "description": "Per-container CPU and memory from cAdvisor. Series are labeled by raw container id rather than service name on this docker-compose/macOS setup (cAdvisor doesn't get Docker Desktop's compose labels here) — this resolves automatically once ported to a real Kubernetes cluster, where kubelet's built-in cAdvisor exposes proper pod/container labels.",
+  "panels": [
+    {
+      "id": 1,
+      "title": "Container CPU Usage (cores)",
+      "type": "timeseries",
+      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 0 },
+      "targets": [
+        {
+          "expr": "sum(rate(container_cpu_usage_seconds_total{id=~\"/docker/.+\"}[1m])) by (id)",
+          "legendFormat": "{{id}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Container Memory Usage",
+      "type": "timeseries",
+      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 9 },
+      "fieldConfig": { "defaults": { "unit": "bytes" }, "overrides": [] },
+      "targets": [
+        {
+          "expr": "container_memory_usage_bytes{id=~\"/docker/.+\"}",
+          "legendFormat": "{{id}}",
+          "refId": "A"
+        }
+      ]
+    }
+  ]
+}

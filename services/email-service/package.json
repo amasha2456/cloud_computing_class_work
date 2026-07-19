@@ -9,7 +9,8 @@
     "aws-lambda": "^1.0.7",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "prom-client": "^15.1.3"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.162",

@@ -1,0 +1,22 @@
+export type WebEventRow = {
+  event_id: string;
+  event_type: string;
+  visitor_id: string;
+  session_id: string;
+  page_path: string;
+  section_id: string;
+  target: string;
+  label: string;
+  value: number;
+  referrer: string;
+  utm_source: string;
+  utm_medium: string;
+  utm_campaign: string;
+  device_type: string;
+  browser: string;
+  os: string;
+  country: string;
+  properties: Record<string, string>;
+  client_ts: string;
+  server_ts: string;
+};

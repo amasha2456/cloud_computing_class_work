@@ -1,8 +1,14 @@
 async function request(url, options) {
   options = options || {};
+  var headers = options.body ? { "Content-Type": "application/json" } : {};
+  var token = typeof Auth !== "undefined" ? Auth.getToken() : null;
+  if (token) {
+    headers["Authorization"] = "Bearer " + token;
+  }
+
   var res = await fetch(url, {
     method: options.method || "GET",
-    headers: options.body ? { "Content-Type": "application/json" } : undefined,
+    headers: headers,
     body: options.body ? JSON.stringify(options.body) : undefined,
   });
 
@@ -13,12 +19,28 @@ async function request(url, options) {
     data = null;
   }
 
+  if (res.status === 401 && typeof Auth !== "undefined") {
+    Auth.clearToken();
+    if (window.location.pathname.indexOf("admin.html") !== -1) {
+      window.location.href = "login.html";
+    }
+  }
+
   if (!res.ok) {
     throw new Error((data && data.message) || "Request failed (" + res.status + ")");
   }
 
   return data;
 }
+
+var AuthAPI = {
+  login: function (username, password) {
+    return request(API_BASE.auth + "/auth/login", {
+      method: "POST",
+      body: { username: username, password: password },
+    });
+  },
+};
 
 var EventsAPI = {
   list: function () {

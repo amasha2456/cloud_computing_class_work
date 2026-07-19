@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s http://localhost:5005/health)",
+      "Bash(curl -s http://localhost:8081/metrics)",
+      "Bash(curl -s --data-urlencode 'query=sum\\(rate\\(pg_stat_database_blks_hit[5m]\\)\\) / \\(sum\\(rate\\(pg_stat_database_blks_hit[5m]\\)\\) + sum\\(rate\\(pg_stat_database_blks_read[5m]\\)\\)\\)' http://localhost:9090/api/v1/query)",
+      "Bash(python3 -m json.tool)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3000/api/health)",
+      "Bash(zip --version)",
+      "Bash(node --check services/frontend-service/js/auth.js)",
+      "Bash(node --check services/frontend-service/js/api.js)",
+      "Bash(node --check services/frontend-service/js/admin.js)",
+      "Bash(python3 -c ' *)",
+      "Bash(node --check /tmp/login-inline.js)",
+      "Bash(curl -s -X POST http://localhost:5006/api/v1/auth/login -H 'Content-Type: application/json' -d '{\"username\":\"admin\",\"password\":\"0QKViAUvlGJhXIMj\"}')",
+      "Bash(curl -s -X POST http://localhost:5006/api/v1/auth/login -H 'Content-Type: application/json' -d '{\"username\":\"admin\",\"password\":\"wrong\"}')",
+      "Bash(curl -s http://localhost:5006/health)"
+    ]
+  }
+}

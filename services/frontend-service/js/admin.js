@@ -1,3 +1,5 @@
+Auth.requireLogin();
+
 var eventsCache = [];
 var programsCache = [];
 var registrationsCache = [];
@@ -399,4 +401,9 @@ document.addEventListener("DOMContentLoaded", function () {
   document.getElementById("event-form").addEventListener("submit", submitEventForm);
   document.getElementById("program-form").addEventListener("submit", submitProgramForm);
   document.getElementById("registration-form").addEventListener("submit", submitRegistrationForm);
+
+  document.getElementById("logout-link").addEventListener("click", function (evt) {
+    evt.preventDefault();
+    Auth.logout();
+  });
 });

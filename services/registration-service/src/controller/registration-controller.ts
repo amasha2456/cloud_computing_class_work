@@ -2,6 +2,7 @@ import type { Response, Request } from "express";
 import { error, timeStamp } from "node:console";
 import pool from "../db.js";
 import axios from "axios";
+import { triggerLowSeatsNotification } from "../lambda.js";
 
 const EVENT_SERVICE_URL = process.env.EVENT_SERVICE_URL;
 const EMAIL_SERVICE_URL = process.env.EMAIL_SERVICE_URL;
@@ -26,6 +27,7 @@ async function updateEventSeats(eventId: string, seatsAvailable: number) {
   const res = await axios.put(
     `${EVENT_SERVICE_URL}/api/v1/event/update/${eventId}`,
     { seatsAvailable },
+    { headers: { Authorization: `Bearer ${process.env.INTERNAL_SERVICE_TOKEN}` } },
   );
   return res.data;
 }
@@ -72,19 +74,7 @@ export async function createRegistration(req: Request, res: Response) {
       }
       throw e;
     }
-    if (
-      event.seatsavailable < SEATS_AVAILABLE_THRESHOLD ||
-      ticketcount > event.seatsavailable
-    ) {
-      await sendEmail(
-        email,
-        "Event Registration",
-        `
-        <p>Dear ${attendeeName},<p>
-        <p>We regret to inform you that the event you wish to register for has limited seats and we are unable to accommodate your registration at this time.<p>
-        <p>Thank you for your understanding</p>
-        `,
-      );
+    if (ticketcount > event.seatsavailable) {
       return res.status(400).json({
         message: "Not enough seats available",
       });
@@ -106,10 +96,18 @@ export async function createRegistration(req: Request, res: Response) {
       [registrationId, eventId, attendeeName, email, ticketcount, timeStamp],
     );
 
+    const newSeatsAvailable = event.seatsavailable - ticketcount;
+
     try {
-      await updateEventSeats(eventId, event.seatsavailable - ticketcount);
+      await updateEventSeats(eventId, newSeatsAvailable);
     } catch (e) {
       console.error("Failed to update event seatsAvailable", e);
+    }
+
+    if (newSeatsAvailable < SEATS_AVAILABLE_THRESHOLD) {
+      triggerLowSeatsNotification(eventId, newSeatsAvailable).catch((e) => {
+        console.error("Failed to trigger low-seats notification", e);
+      });
     }
 
     try {

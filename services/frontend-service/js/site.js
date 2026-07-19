@@ -28,7 +28,13 @@ function loadPrograms() {
       container.innerHTML = programs
         .map(function (program) {
           return (
-            '<div class="col-md-12 col-sm-12">' +
+            '<div class="col-md-12 col-sm-12" data-track="' +
+            escapeHtml(program.track) +
+            '" data-session="' +
+            escapeHtml(program.sessionname) +
+            '" data-speaker="' +
+            escapeHtml(program.speakername) +
+            '">' +
             "<h6>" +
             '<span><i class="fa fa-clock-o"></i> ' +
             formatDateTime(program.datetime) +
@@ -97,6 +103,12 @@ function handleRegisterSubmit(evt) {
 
   if (!eventId) {
     messageBox.innerHTML = '<p class="text-danger">Please select an event.</p>';
+    if (window.Analytics) {
+      window.Analytics.track("registration_validation_error", {
+        section: "register",
+        label: "missing_event",
+      });
+    }
     return;
   }
 
@@ -111,16 +123,36 @@ function handleRegisterSubmit(evt) {
 
   messageBox.innerHTML = "<p>Submitting&hellip;</p>";
 
+  if (window.Analytics) {
+    window.Analytics.track("registration_submitted", {
+      section: "register",
+      properties: { eventId: eventId, ticketcount: String(payload.ticketcount) },
+    });
+  }
+
   RegistrationsAPI.create(payload)
     .then(function () {
       messageBox.innerHTML =
         '<p class="text-success">Registration successful!</p>';
       document.getElementById("register-form").reset();
       loadRegisterEvents();
+      if (window.Analytics) {
+        window.Analytics.track("registration_success", {
+          section: "register",
+          properties: { eventId: eventId, ticketcount: String(payload.ticketcount) },
+        });
+      }
     })
     .catch(function (err) {
       messageBox.innerHTML =
         '<p class="text-danger">' + escapeHtml(err.message) + "</p>";
+      if (window.Analytics) {
+        window.Analytics.track("registration_failed", {
+          section: "register",
+          label: err.message,
+          properties: { eventId: eventId },
+        });
+      }
     });
 }
 

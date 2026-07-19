@@ -1,3 +1,5 @@
+CREATE DATABASE superset;
+
 CREATE TABLE IF NOT EXISTS events (
   eventId TEXT PRIMARY KEY,
   title TEXT NOT NULL,
