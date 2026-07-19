@@ -6,7 +6,7 @@
   "version": 1,
   "refresh": "10s",
   "time": { "from": "now-1h", "to": "now" },
-  "description": "Per-container CPU and memory from cAdvisor. Series are labeled by raw container id rather than service name on this docker-compose/macOS setup (cAdvisor doesn't get Docker Desktop's compose labels here) — this resolves automatically once ported to a real Kubernetes cluster, where kubelet's built-in cAdvisor exposes proper pod/container labels.",
+  "description": "Per-container CPU and memory from cAdvisor. Series are labeled by raw container id rather than service name (this standalone cAdvisor DaemonSet doesn't get Docker Compose or Kubernetes pod/container labels). Filtered on image!=\"\" rather than a cgroup id path prefix, since that path convention (e.g. /docker/... vs /kubepods.../...) varies by container runtime and cgroup driver.",
   "panels": [
     {
       "id": 1,
@@ -15,7 +15,7 @@
       "gridPos": { "h": 9, "w": 24, "x": 0, "y": 0 },
       "targets": [
         {
-          "expr": "sum(rate(container_cpu_usage_seconds_total{id=~\"/docker/.+\"}[1m])) by (id)",
+          "expr": "sum(rate(container_cpu_usage_seconds_total{image!=\"\"}[1m])) by (id)",
           "legendFormat": "{{id}}",
           "refId": "A"
         }
@@ -29,7 +29,7 @@
       "fieldConfig": { "defaults": { "unit": "bytes" }, "overrides": [] },
       "targets": [
         {
-          "expr": "container_memory_usage_bytes{id=~\"/docker/.+\"}",
+          "expr": "container_memory_usage_bytes{image!=\"\"}",
           "legendFormat": "{{id}}",
           "refId": "A"
         }
