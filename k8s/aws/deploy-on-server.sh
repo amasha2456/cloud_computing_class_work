@@ -81,7 +81,7 @@ kubectl rollout status deployment/postgres-exporter -n newevent --timeout=60s ||
 echo "== Applying ingress (idempotent) =="
 kubectl apply -f k8s/aws/ingress.yaml
 
-SERVICES="frontend-service event-service program-service registration-service email-service auth-service analytics-service"
+SERVICES="analytics-service event-service program-service registration-service email-service auth-service frontend-service"
 for name in $SERVICES; do
   image="ghcr.io/${REPO_LOWER}-${name}:${TAG}"
 
