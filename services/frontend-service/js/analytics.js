@@ -56,10 +56,23 @@
 
   var device = parseUserAgent(navigator.userAgent);
 
+  function generateUUID() {
+    if (window.crypto && typeof crypto.randomUUID === 'function') {
+      return crypto.randomUUID();
+    }
+    // crypto.randomUUID is only available in secure contexts (HTTPS or
+    // localhost) - fall back to Math.random for plain-HTTP deployments.
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+      var r = (Math.random() * 16) | 0;
+      var v = c === 'x' ? r : (r & 0x3) | 0x8;
+      return v.toString(16);
+    });
+  }
+
   function getVisitorId() {
     var id = localStorage.getItem(VISITOR_KEY);
     if (!id) {
-      id = crypto.randomUUID();
+      id = generateUUID();
       localStorage.setItem(VISITOR_KEY, id);
     }
     return id;
@@ -102,7 +115,7 @@
       !sessionStorage.getItem(SESSION_KEY) || Date.now() - last > SESSION_TIMEOUT_MS;
 
     if (isNew) {
-      sessionStorage.setItem(SESSION_KEY, crypto.randomUUID());
+      sessionStorage.setItem(SESSION_KEY, generateUUID());
       sessionStorage.removeItem(ATTRIBUTION_KEY);
       attribution = null;
     }
