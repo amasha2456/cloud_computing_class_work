@@ -113,7 +113,7 @@ function handleRegisterSubmit(evt) {
   }
 
   var payload = {
-    registrationId: crypto.randomUUID(),
+    registrationId: generateUUID(),
     eventId: eventId,
     attendeeName: document.getElementById("register-name").value,
     email: document.getElementById("register-email").value,

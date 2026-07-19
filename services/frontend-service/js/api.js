@@ -1,3 +1,16 @@
+function generateUUID() {
+  if (window.crypto && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  // crypto.randomUUID is only available in secure contexts (HTTPS or
+  // localhost) - fall back to Math.random for plain-HTTP deployments.
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+    var r = (Math.random() * 16) | 0;
+    var v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
 async function request(url, options) {
   options = options || {};
   var headers = options.body ? { "Content-Type": "application/json" } : {};

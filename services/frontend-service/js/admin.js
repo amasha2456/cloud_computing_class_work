@@ -129,7 +129,7 @@ function submitEventForm(evt) {
   evt.preventDefault();
 
   var existingId = document.getElementById("event-id").value;
-  var id = existingId || crypto.randomUUID();
+  var id = existingId || generateUUID();
   var payload = {
     eventId: id,
     title: document.getElementById("event-title").value,
@@ -233,7 +233,7 @@ function submitProgramForm(evt) {
   evt.preventDefault();
 
   var existingId = document.getElementById("program-id").value;
-  var id = existingId || crypto.randomUUID();
+  var id = existingId || generateUUID();
   var payload = {
     programId: id,
     sessionName: document.getElementById("program-sessionname").value,
@@ -342,7 +342,7 @@ function submitRegistrationForm(evt) {
   evt.preventDefault();
 
   var existingId = document.getElementById("registration-id").value;
-  var id = existingId || crypto.randomUUID();
+  var id = existingId || generateUUID();
   var payload = {
     registrationId: id,
     eventId: document.getElementById("registration-eventid").value,
