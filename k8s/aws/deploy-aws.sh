@@ -1,27 +1,25 @@
 #!/bin/bash
 set -e
 
-# Deploys the core app path (frontend + 6 microservices + Postgres) to the
-# real k3s cluster on EC2. ClickHouse/analytics/Superset/Prometheus/Grafana/
-# cAdvisor are deliberately NOT part of this deployment - the node is a
-# free-tier-eligible t3.small (2GB RAM), which only comfortably fits the
-# core transactional path. Those pieces remain docker-compose-only.
+# Builds/pushes the 6 core service images (frontend + 5 microservices),
+# then SSHes into the EC2 k3s instance to run the actual deployment there
+# (k8s/aws/deploy-on-server.sh) - kubectl runs locally on the server against
+# 127.0.0.1:6443, so nothing beyond SSH (22) and the app's own HTTP/HTTPS
+# ports need to be reachable from outside.
 #
-# Reuses k8s/blue-green/*.yaml as-is (same source of truth as the kind
-# deployment) rather than duplicating them.
-#
-# Bootstraps the namespace/secrets/Postgres/Deployments on the very first
-# run (nothing exists yet - safe to just apply fresh with blue active).
-# On every run after that, each of the 6 services already exists, so a
-# real blue-green cutover (k8s/blue-green-deploy.sh) is used instead of
-# blindly overwriting the active slot's image in place, which would cause
-# a brief outage on that slot - exactly what blue-green exists to avoid.
+# Required env vars: SERVER_HOST (public IP/hostname), SSH_KEY (path to the
+# private key file). Image build/push happens here (on whatever machine runs
+# this - a GitHub Actions runner or locally) since the server itself is a
+# small 2GB instance not worth burdening with builds.
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-export KUBECONFIG="$ROOT_DIR/k8s/aws/kubeconfig"
+
+: "${SERVER_HOST:?SERVER_HOST env var required (EC2 public IP)}"
+: "${SSH_KEY:?SSH_KEY env var required (path to private key file)}"
 
 REPO_LOWER=$(echo "${GITHUB_REPOSITORY:-amasha2456/cloud_computing_class_work}" | tr '[:upper:]' '[:lower:]')
 TAG="${TAG:-$(git -C "$ROOT_DIR" rev-parse --short HEAD)}"
+SSH_OPTS="-o StrictHostKeyChecking=no -i $SSH_KEY"
 
 SERVICES="
 frontend-service:services/frontend-service
@@ -47,35 +45,14 @@ for entry in $SERVICES; do
   fi
 done
 
-echo "== Applying namespace, secrets, configmaps (idempotent, safe to always re-run) =="
-kubectl apply -f "$ROOT_DIR/k8s/00-namespace.yaml"
-bash "$ROOT_DIR/k8s/create-secrets.sh"
-kubectl create configmap postgres-init \
-  --from-file=init.sql="$ROOT_DIR/db/init.sql" \
-  -n newevent --dry-run=client -o yaml | kubectl apply -f -
-kubectl apply -f "$ROOT_DIR/k8s/01-app-config.yaml"
+echo "== Staging .env on the server =="
+# shellcheck disable=SC2086
+ssh $SSH_OPTS "ubuntu@${SERVER_HOST}" "mkdir -p ~/env-staging"
+# shellcheck disable=SC2086
+scp $SSH_OPTS "$ROOT_DIR/.env" "ubuntu@${SERVER_HOST}:~/env-staging/.env"
 
-echo "== Applying Postgres (idempotent) =="
-kubectl apply -f "$ROOT_DIR/k8s/postgres.yaml"
-kubectl rollout status deployment/postgres -n newevent --timeout=120s
+echo "== Running deployment on the server =="
+# shellcheck disable=SC2086
+ssh $SSH_OPTS "ubuntu@${SERVER_HOST}" "bash -s -- '${TAG}' '${REPO_LOWER}'" < "$ROOT_DIR/k8s/aws/deploy-on-server.sh"
 
-echo "== Applying ingress (idempotent) =="
-kubectl apply -f "$ROOT_DIR/k8s/aws/ingress.yaml"
-
-for entry in $SERVICES; do
-  name="${entry%%:*}"
-  image="ghcr.io/${REPO_LOWER}-${name}:${TAG}"
-
-  if kubectl get deployment "${name}-blue" -n newevent >/dev/null 2>&1; then
-    echo "== ${name}: already deployed - blue-green cutover to ${image} =="
-    bash "$ROOT_DIR/k8s/blue-green-deploy.sh" "$name" "$image"
-  else
-    echo "== ${name}: first deploy - bootstrapping with blue active =="
-    kubectl apply -f "$ROOT_DIR/k8s/blue-green/${name}.yaml"
-    kubectl set image "deployment/${name}-blue" "${name}=${image}" -n newevent
-    kubectl rollout status "deployment/${name}-blue" -n newevent --timeout=120s
-  fi
-done
-
-echo "Done. kubectl get pods -n newevent"
-kubectl get pods -n newevent
+echo "Done."

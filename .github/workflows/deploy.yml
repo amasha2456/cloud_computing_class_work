@@ -1,4 +1,4 @@
-name: Deploy (Blue-Green to AWS)
+name: Deploy (Blue-Green to AWS via SSH)
 
 on:
   workflow_run:
@@ -22,22 +22,22 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Set up kubectl
-        uses: azure/setup-kubectl@v4
-
       - name: Log in to GitHub Container Registry
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
-
-      - name: Write kubeconfig for the real k3s cluster
-        run: |
-          mkdir -p k8s/aws
-          echo "${{ secrets.KUBECONFIG }}" > k8s/aws/kubeconfig
-          chmod 600 k8s/aws/kubeconfig
 
       - name: Write .env (source for the K8s app-secrets Secret)
         run: echo "${{ secrets.APP_ENV_FILE }}" > .env
 
-      - name: Deploy (build, push to GHCR, blue-green cutover)
+      - name: Write SSH private key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+
+      - name: Deploy (build, push to GHCR, SSH in for blue-green cutover)
+        env:
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SSH_KEY: /home/runner/.ssh/deploy_key
         run: |
           export TAG="$(git rev-parse --short HEAD)"
           bash k8s/aws/deploy-aws.sh
