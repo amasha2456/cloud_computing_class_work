@@ -1,0 +1,102 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: program-service-blue
+  namespace: newevent
+  labels:
+    app: program-service
+    slot: blue
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: program-service
+      slot: blue
+  template:
+    metadata:
+      labels:
+        app: program-service
+        slot: blue
+    spec:
+      containers:
+        - name: program-service
+          image: newevent/program-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5002
+          env:
+            - name: PORT
+              value: "5002"
+          envFrom:
+            - configMapRef:
+                name: app-config
+            - secretRef:
+                name: app-secrets
+          readinessProbe:
+            httpGet: { path: /health, port: 5002 }
+            initialDelaySeconds: 5
+          livenessProbe:
+            httpGet: { path: /health, port: 5002 }
+            initialDelaySeconds: 15
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: program-service-green
+  namespace: newevent
+  labels:
+    app: program-service
+    slot: green
+spec:
+  replicas: 0
+  selector:
+    matchLabels:
+      app: program-service
+      slot: green
+  template:
+    metadata:
+      labels:
+        app: program-service
+        slot: green
+    spec:
+      containers:
+        - name: program-service
+          image: newevent/program-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5002
+          env:
+            - name: PORT
+              value: "5002"
+          envFrom:
+            - configMapRef:
+                name: app-config
+            - secretRef:
+                name: app-secrets
+          readinessProbe:
+            httpGet: { path: /health, port: 5002 }
+            initialDelaySeconds: 5
+          livenessProbe:
+            httpGet: { path: /health, port: 5002 }
+            initialDelaySeconds: 15
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: program-service
+  namespace: newevent
+spec:
+  selector:
+    app: program-service
+    slot: blue
+  ports:
+    - port: 5002
+      targetPort: 5002

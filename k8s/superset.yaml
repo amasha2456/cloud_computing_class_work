@@ -1,0 +1,96 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: superset
+  namespace: newevent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: superset
+  template:
+    metadata:
+      labels:
+        app: superset
+    spec:
+      containers:
+        - name: superset
+          image: newevent/superset:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8088
+          envFrom:
+            - configMapRef:
+                name: app-config
+          env:
+            - name: SUPERSET_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: SUPERSET_SECRET_KEY
+            - name: SUPERSET_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: SUPERSET_ADMIN_PASSWORD
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8088
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            failureThreshold: 12
+          resources:
+            requests:
+              cpu: 200m
+              memory: 512Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: superset
+  namespace: newevent
+spec:
+  selector:
+    app: superset
+  ports:
+    - port: 8088
+      targetPort: 8088
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: superset-seed
+  namespace: newevent
+spec:
+  backoffLimit: 3
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: superset-seed
+          image: node:22-alpine
+          command: ["node", "/seed.mjs"]
+          env:
+            - name: SUPERSET_URL
+              value: http://superset:8088
+            - name: SUPERSET_ADMIN_USERNAME
+              value: admin
+            - name: SUPERSET_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: SUPERSET_ADMIN_PASSWORD
+            - name: CLICKHOUSE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: CLICKHOUSE_PASSWORD
+          volumeMounts:
+            - name: seed-script
+              mountPath: /seed.mjs
+              subPath: seed-dashboard.mjs
+      volumes:
+        - name: seed-script
+          configMap:
+            name: superset-seed-script

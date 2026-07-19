@@ -1,0 +1,102 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: analytics-service-blue
+  namespace: newevent
+  labels:
+    app: analytics-service
+    slot: blue
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: analytics-service
+      slot: blue
+  template:
+    metadata:
+      labels:
+        app: analytics-service
+        slot: blue
+    spec:
+      containers:
+        - name: analytics-service
+          image: newevent/analytics-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5005
+          env:
+            - name: PORT
+              value: "5005"
+          envFrom:
+            - configMapRef:
+                name: app-config
+            - secretRef:
+                name: app-secrets
+          readinessProbe:
+            httpGet: { path: /health, port: 5005 }
+            initialDelaySeconds: 5
+          livenessProbe:
+            httpGet: { path: /health, port: 5005 }
+            initialDelaySeconds: 15
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: analytics-service-green
+  namespace: newevent
+  labels:
+    app: analytics-service
+    slot: green
+spec:
+  replicas: 0
+  selector:
+    matchLabels:
+      app: analytics-service
+      slot: green
+  template:
+    metadata:
+      labels:
+        app: analytics-service
+        slot: green
+    spec:
+      containers:
+        - name: analytics-service
+          image: newevent/analytics-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5005
+          env:
+            - name: PORT
+              value: "5005"
+          envFrom:
+            - configMapRef:
+                name: app-config
+            - secretRef:
+                name: app-secrets
+          readinessProbe:
+            httpGet: { path: /health, port: 5005 }
+            initialDelaySeconds: 5
+          livenessProbe:
+            httpGet: { path: /health, port: 5005 }
+            initialDelaySeconds: 15
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: analytics-service
+  namespace: newevent
+spec:
+  selector:
+    app: analytics-service
+    slot: blue
+  ports:
+    - port: 5005
+      targetPort: 5005

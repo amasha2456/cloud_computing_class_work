@@ -9,7 +9,7 @@ import { metricsMiddleware, register } from "./metrics.js";
 
 const app = express();
 
-app.use(cors());
+app.use(cors({ origin: (process.env.CORS_ORIGIN || "http://localhost:8080").split(",") }));
 app.use(express.json());
 app.use(metricsMiddleware);
 

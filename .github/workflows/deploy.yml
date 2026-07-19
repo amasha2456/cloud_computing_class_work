@@ -1,0 +1,46 @@
+name: Deploy (Blue-Green)
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  deploy:
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: self-hosted
+    env:
+      CLUSTER_NAME: newevent
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Compute image tag
+        run: echo "TAG=$(git rev-parse --short HEAD)" >> "$GITHUB_ENV"
+
+      - name: Log in to GitHub Container Registry
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Build, tag, and push images (audit trail in GHCR)
+        run: |
+          REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          for svc in frontend-service event-service program-service registration-service email-service auth-service analytics-service; do
+            docker build -t "newevent/${svc}:${TAG}" "./services/${svc}"
+            docker tag "newevent/${svc}:${TAG}" "ghcr.io/${REPO_LOWER}-${svc}:${TAG}"
+            docker push "ghcr.io/${REPO_LOWER}-${svc}:${TAG}"
+          done
+
+      - name: Blue-green cutover for each service
+        run: |
+          for svc in frontend-service event-service program-service registration-service email-service auth-service analytics-service; do
+            bash k8s/blue-green-deploy.sh "$svc" "newevent/${svc}:${TAG}"
+          done
+
+      - name: Verify rollout
+        run: kubectl get pods -n newevent

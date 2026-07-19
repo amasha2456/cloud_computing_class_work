@@ -3,6 +3,7 @@ import { error, timeStamp } from "node:console";
 import pool from "../db.js";
 import axios from "axios";
 import { triggerLowSeatsNotification } from "../lambda.js";
+import { hasEnoughSeats, isBelowThreshold } from "../seat-logic.js";
 
 const EVENT_SERVICE_URL = process.env.EVENT_SERVICE_URL;
 const EMAIL_SERVICE_URL = process.env.EMAIL_SERVICE_URL;
@@ -78,7 +79,7 @@ export async function createRegistration(req: Request, res: Response) {
       }
       throw e;
     }
-    if (ticketcount > event.seatsavailable) {
+    if (!hasEnoughSeats(ticketcount, event.seatsavailable)) {
       triggerLowSeatsNotification({
         eventId,
         eventTitle: event.title,
@@ -117,7 +118,7 @@ export async function createRegistration(req: Request, res: Response) {
       console.error("Failed to update event seatsAvailable", e);
     }
 
-    if (newSeatsAvailable < SEATS_AVAILABLE_THRESHOLD) {
+    if (isBelowThreshold(newSeatsAvailable, SEATS_AVAILABLE_THRESHOLD)) {
       triggerLowSeatsNotification({
         eventId,
         eventTitle: event.title,

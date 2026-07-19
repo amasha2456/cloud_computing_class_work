@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  typecheck:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service:
+          - event-service
+          - program-service
+          - registration-service
+          - email-service
+          - auth-service
+          - analytics-service
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        working-directory: services/${{ matrix.service }}
+        run: npm install
+
+      - name: Typecheck
+        working-directory: services/${{ matrix.service }}
+        run: |
+          if [ "${{ matrix.service }}" = "email-service" ]; then
+            npx tsc --noEmit --ignoreDeprecations 6.0
+          else
+            npx tsc --noEmit
+          fi
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service:
+          - registration-service
+          - auth-service
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        working-directory: services/${{ matrix.service }}
+        run: npm install
+
+      - name: Run tests
+        working-directory: services/${{ matrix.service }}
+        run: npm test

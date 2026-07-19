@@ -48,6 +48,7 @@ services:
       DB_PASSWORD: postgres
       DB_NAME: newevent
       JWT_SECRET: ${JWT_SECRET}
+      CORS_ORIGIN: ${CORS_ORIGIN}
 
     ports:
       - "5001:5001"
@@ -67,6 +68,7 @@ services:
       DB_PASSWORD: postgres
       DB_NAME: newevent
       JWT_SECRET: ${JWT_SECRET}
+      CORS_ORIGIN: ${CORS_ORIGIN}
 
     ports:
       - "5002:5002"
@@ -94,6 +96,7 @@ services:
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
       AWS_REGION: ${AWS_REGION}
       LOW_SEATS_LAMBDA_NAME: ${LOW_SEATS_LAMBDA_NAME}
+      CORS_ORIGIN: ${CORS_ORIGIN}
 
     ports:
       - "5003:5003"
@@ -113,6 +116,7 @@ services:
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
       AWS_REGION: ${AWS_REGION}
       SES_FROM_EMAIL: ${SES_FROM_EMAIL}
+      CORS_ORIGIN: ${CORS_ORIGIN}
 
     ports:
       - "5004:5004"
@@ -126,6 +130,7 @@ services:
       ADMIN_USERNAME: ${ADMIN_USERNAME}
       ADMIN_PASSWORD_HASH: ${ADMIN_PASSWORD_HASH}
       JWT_SECRET: ${JWT_SECRET}
+      CORS_ORIGIN: ${CORS_ORIGIN}
 
     ports:
       - "5006:5006"
@@ -163,6 +168,7 @@ services:
       CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD}
       FLUSH_INTERVAL_MS: 5000
       FLUSH_MAX_BUFFER: 500
+      CORS_ORIGIN: ${CORS_ORIGIN}
 
     ports:
       - "5005:5005"

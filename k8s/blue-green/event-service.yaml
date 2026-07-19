@@ -1,0 +1,102 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: event-service-blue
+  namespace: newevent
+  labels:
+    app: event-service
+    slot: blue
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: event-service
+      slot: blue
+  template:
+    metadata:
+      labels:
+        app: event-service
+        slot: blue
+    spec:
+      containers:
+        - name: event-service
+          image: newevent/event-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5001
+          env:
+            - name: PORT
+              value: "5001"
+          envFrom:
+            - configMapRef:
+                name: app-config
+            - secretRef:
+                name: app-secrets
+          readinessProbe:
+            httpGet: { path: /health, port: 5001 }
+            initialDelaySeconds: 5
+          livenessProbe:
+            httpGet: { path: /health, port: 5001 }
+            initialDelaySeconds: 15
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: event-service-green
+  namespace: newevent
+  labels:
+    app: event-service
+    slot: green
+spec:
+  replicas: 0
+  selector:
+    matchLabels:
+      app: event-service
+      slot: green
+  template:
+    metadata:
+      labels:
+        app: event-service
+        slot: green
+    spec:
+      containers:
+        - name: event-service
+          image: newevent/event-service:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5001
+          env:
+            - name: PORT
+              value: "5001"
+          envFrom:
+            - configMapRef:
+                name: app-config
+            - secretRef:
+                name: app-secrets
+          readinessProbe:
+            httpGet: { path: /health, port: 5001 }
+            initialDelaySeconds: 5
+          livenessProbe:
+            httpGet: { path: /health, port: 5001 }
+            initialDelaySeconds: 15
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: event-service
+  namespace: newevent
+spec:
+  selector:
+    app: event-service
+    slot: blue
+  ports:
+    - port: 5001
+      targetPort: 5001
