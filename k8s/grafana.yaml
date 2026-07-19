@@ -31,6 +31,7 @@ spec:
           image: grafana/grafana:latest
           ports:
             - containerPort: 3000
+              hostPort: 3000
           envFrom:
             - configMapRef:
                 name: app-config

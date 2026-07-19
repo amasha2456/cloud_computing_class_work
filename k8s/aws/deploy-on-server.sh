@@ -7,6 +7,10 @@ set -e
 # SSH (22) does, which is what actually reaches this script in the first
 # place.
 #
+# Bootstraps k3s itself on first run (idempotent - skipped once k3s is
+# already installed). Relies on the default Ubuntu AMI's passwordless sudo
+# for the `ubuntu` user, since this runs non-interactively over SSH.
+#
 # Usage (from the caller, over ssh): bash -s -- <tag> <repo-lower>
 # Expects ~/env-staging/.env to already be in place (written by the caller
 # via scp before this runs) - contains the secrets for k8s/create-secrets.sh.
@@ -19,6 +23,22 @@ if [ -z "$TAG" ] || [ -z "$REPO_LOWER" ]; then
   echo "Usage: deploy-on-server.sh <tag> <repo-lower>" >&2
   exit 1
 fi
+
+export PATH="$PATH:/usr/local/bin"
+
+if ! command -v k3s >/dev/null 2>&1; then
+  echo "== k3s not found - installing (first run on this server) =="
+  curl -sfL https://get.k3s.io | sh -
+  echo "== Waiting for k3s node to be Ready =="
+  until sudo k3s kubectl get nodes 2>/dev/null | grep -q " Ready"; do
+    sleep 2
+  done
+fi
+
+mkdir -p "$HOME/.kube"
+sudo cp /etc/rancher/k3s/k3s.yaml "$HOME/.kube/config"
+sudo chown "$(id -u):$(id -g)" "$HOME/.kube/config"
+chmod 600 "$HOME/.kube/config"
 
 if [ -d "$APP_DIR/.git" ]; then
   echo "== Updating existing checkout =="
@@ -37,19 +57,29 @@ export KUBECONFIG="$HOME/.kube/config"
 echo "== Applying namespace, secrets, configmaps (idempotent) =="
 kubectl apply -f k8s/00-namespace.yaml
 bash k8s/create-secrets.sh
-kubectl create configmap postgres-init \
-  --from-file=init.sql=db/init.sql \
-  -n newevent --dry-run=client -o yaml | kubectl apply -f -
+bash k8s/create-configmaps.sh
 kubectl apply -f k8s/01-app-config.yaml
 
-echo "== Applying Postgres (idempotent) =="
+echo "== Applying stateful services (idempotent) =="
 kubectl apply -f k8s/postgres.yaml
+kubectl apply -f k8s/clickhouse.yaml
+kubectl apply -f k8s/prometheus.yaml
+kubectl apply -f k8s/grafana.yaml
 kubectl rollout status deployment/postgres -n newevent --timeout=120s
+kubectl rollout status deployment/clickhouse -n newevent --timeout=120s
+
+echo "== Applying non-blue-green app services =="
+kubectl apply -f k8s/postgres-exporter.yaml
+kubectl apply -f k8s/cadvisor.yaml
+kubectl apply -f k8s/superset.yaml
+kubectl set image deployment/superset "superset=ghcr.io/${REPO_LOWER}-superset:${TAG}" -n newevent
+kubectl rollout status deployment/superset -n newevent --timeout=180s
+kubectl rollout status deployment/postgres-exporter -n newevent --timeout=60s
 
 echo "== Applying ingress (idempotent) =="
 kubectl apply -f k8s/aws/ingress.yaml
 
-SERVICES="frontend-service event-service program-service registration-service email-service auth-service"
+SERVICES="frontend-service event-service program-service registration-service email-service auth-service analytics-service"
 for name in $SERVICES; do
   image="ghcr.io/${REPO_LOWER}-${name}:${TAG}"
 
@@ -63,6 +93,10 @@ for name in $SERVICES; do
     kubectl rollout status "deployment/${name}-blue" -n newevent --timeout=120s
   fi
 done
+
+echo "== Waiting for superset-seed job =="
+kubectl wait --for=condition=complete job/superset-seed -n newevent --timeout=180s || \
+  echo "WARNING: superset-seed job did not complete in time, check logs: kubectl logs job/superset-seed -n newevent"
 
 echo "Done. kubectl get pods -n newevent:"
 kubectl get pods -n newevent

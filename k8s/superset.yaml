@@ -16,9 +16,10 @@ spec:
       containers:
         - name: superset
           image: newevent/superset:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           ports:
             - containerPort: 8088
+              hostPort: 8088
           envFrom:
             - configMapRef:
                 name: app-config

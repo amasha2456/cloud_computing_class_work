@@ -28,6 +28,8 @@ program-service:services/program-service
 registration-service:services/registration-service
 email-service:services/email-service
 auth-service:services/auth-service
+analytics-service:services/analytics-service
+superset:superset
 "
 
 echo "== Building and pushing images (tag: ${TAG}, platform: linux/amd64) =="
@@ -36,13 +38,7 @@ for entry in $SERVICES; do
   context="${entry#*:}"
   image="ghcr.io/${REPO_LOWER}-${name}:${TAG}"
   echo "-- ${image}"
-  if [ "$name" = "frontend-service" ]; then
-    docker buildx build --platform linux/amd64 --push \
-      --build-arg NGINX_CONF=nginx.aws.conf \
-      -t "$image" "${ROOT_DIR}/${context}"
-  else
-    docker buildx build --platform linux/amd64 --push -t "$image" "${ROOT_DIR}/${context}"
-  fi
+  docker buildx build --platform linux/amd64 --push -t "$image" "${ROOT_DIR}/${context}"
 done
 
 echo "== Staging .env on the server =="
