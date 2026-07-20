@@ -1,5 +1,5 @@
 {
-  "name": "low-seats-notifier",
+  "name": "seats-unavailable-notifier",
   "version": "1.0.0",
   "type": "module",
   "dependencies": {

@@ -1,4 +1,4 @@
-name: CI
+name: CI Workflow
 
 on:
   push:
@@ -15,7 +15,6 @@ jobs:
           - event-service
           - program-service
           - registration-service
-          - email-service
           - auth-service
           - analytics-service
     steps:
@@ -31,12 +30,7 @@ jobs:
 
       - name: Typecheck
         working-directory: services/${{ matrix.service }}
-        run: |
-          if [ "${{ matrix.service }}" = "email-service" ]; then
-            npx tsc --noEmit --ignoreDeprecations 6.0
-          else
-            npx tsc --noEmit
-          fi
+        run: npx tsc --noEmit
 
   test:
     runs-on: ubuntu-latest

@@ -9,7 +9,6 @@ frontend-service:services/frontend-service
 event-service:services/event-service
 program-service:services/program-service
 registration-service:services/registration-service
-email-service:services/email-service
 auth-service:services/auth-service
 analytics-service:services/analytics-service
 "

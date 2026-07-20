@@ -3,8 +3,8 @@ set -e
 
 # Loads a local Docker image directly onto the remote k3s EC2 node over SSH,
 # bypassing any registry. Useful for manual verification/debugging without
-# needing GHCR credentials - the real CI/CD path (deploy-aws.sh) pushes to
-# ghcr.io instead, since GitHub Actions runners can't reach this node's
+# needing Docker Hub credentials - the real CI/CD path (deploy-aws.sh) pushes
+# to Docker Hub instead, since GitHub Actions runners can't reach this node's
 # Docker daemon directly.
 
 IMAGE="$1"

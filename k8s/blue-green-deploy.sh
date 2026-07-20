@@ -35,7 +35,7 @@ echo "[$SERVICE] current active slot: $CURRENT_SLOT -> deploying $IMAGE to slot:
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 case "$IMAGE" in
-  ghcr.io/*)
+  docker.io/*)
     echo "[$SERVICE] image is a registry reference - the cluster will pull it directly, no local load needed."
     ;;
   *)

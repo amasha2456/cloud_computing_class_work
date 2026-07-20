@@ -14,7 +14,6 @@ data:
   POSTGRES_DB: newevent
 
   EVENT_SERVICE_URL: http://event-service:5001
-  EMAIL_SERVICE_URL: http://email-service:5004
   SEATS_AVAILABLE_THRESHOLD: "10"
 
   CLICKHOUSE_URL: http://clickhouse:8123

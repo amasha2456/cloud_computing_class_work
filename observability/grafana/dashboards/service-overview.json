@@ -14,7 +14,7 @@
       "gridPos": { "h": 6, "w": 24, "x": 0, "y": 0 },
       "targets": [
         {
-          "expr": "up{job=~\"event-service|program-service|registration-service|email-service|analytics-service\"}",
+          "expr": "up{job=~\"event-service|program-service|registration-service|analytics-service\"}",
           "legendFormat": "{{job}}",
           "instant": true,
           "refId": "A"

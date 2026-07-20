@@ -1,9 +1,9 @@
 {
-  "name": "low-seats-notifier-deploy",
+  "name": "lambda-deploy",
   "version": "1.0.0",
   "type": "module",
   "private": true,
-  "description": "One-off deployment tooling for the low-seats-notifier Lambda. Not part of the deployed function itself.",
+  "description": "One-off deployment tooling for this repo's Lambda functions. Not part of any deployed function itself.",
   "dependencies": {
     "@aws-sdk/client-iam": "^3.1090.0",
     "@aws-sdk/client-lambda": "^3.1090.0"

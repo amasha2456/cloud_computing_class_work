@@ -11,16 +11,16 @@ set -e
 # already installed). Relies on the default Ubuntu AMI's passwordless sudo
 # for the `ubuntu` user, since this runs non-interactively over SSH.
 #
-# Usage (from the caller, over ssh): bash -s -- <tag> <repo-lower>
+# Usage (from the caller, over ssh): bash -s -- <tag> <dockerhub-username>
 # Expects ~/env-staging/.env to already be in place (written by the caller
 # via scp before this runs) - contains the secrets for k8s/create-secrets.sh.
 
 TAG="$1"
-REPO_LOWER="$2"
+DOCKERHUB_USERNAME="$2"
 APP_DIR="$HOME/app"
 
-if [ -z "$TAG" ] || [ -z "$REPO_LOWER" ]; then
-  echo "Usage: deploy-on-server.sh <tag> <repo-lower>" >&2
+if [ -z "$TAG" ] || [ -z "$DOCKERHUB_USERNAME" ]; then
+  echo "Usage: deploy-on-server.sh <tag> <dockerhub-username>" >&2
   exit 1
 fi
 
@@ -72,7 +72,7 @@ echo "== Applying non-blue-green app services =="
 kubectl apply -f k8s/postgres-exporter.yaml
 kubectl apply -f k8s/cadvisor.yaml
 kubectl apply -f k8s/superset.yaml
-kubectl set image deployment/superset "superset=ghcr.io/${REPO_LOWER}-superset:${TAG}" -n newevent
+kubectl set image deployment/superset "superset=docker.io/${DOCKERHUB_USERNAME}/newevent-superset:${TAG}" -n newevent
 kubectl rollout status deployment/superset -n newevent --timeout=300s || \
   echo "WARNING: superset rollout did not finish in time, check: kubectl get pods -n newevent -l app=superset"
 kubectl rollout status deployment/postgres-exporter -n newevent --timeout=60s || \
@@ -81,9 +81,9 @@ kubectl rollout status deployment/postgres-exporter -n newevent --timeout=60s ||
 echo "== Applying ingress (idempotent) =="
 kubectl apply -f k8s/aws/ingress.yaml
 
-SERVICES="analytics-service event-service program-service registration-service email-service auth-service frontend-service"
+SERVICES="analytics-service event-service program-service registration-service auth-service frontend-service"
 for name in $SERVICES; do
-  image="ghcr.io/${REPO_LOWER}-${name}:${TAG}"
+  image="docker.io/${DOCKERHUB_USERNAME}/newevent-${name}:${TAG}"
 
   if kubectl get deployment "${name}-blue" -n newevent >/dev/null 2>&1; then
     echo "== ${name}: already deployed - blue-green cutover to ${image} =="

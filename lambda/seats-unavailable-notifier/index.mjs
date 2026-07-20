@@ -6,37 +6,31 @@ export const handler = async (event) => {
   const eventId = event?.eventId ?? "unknown";
   const eventTitle = event?.eventTitle || eventId;
   const attendeeName = event?.attendeeName || "there";
+  const to = event?.to;
+  const ticketcount = event?.ticketcount ?? "unknown";
   const remainingSeats = event?.remainingSeats ?? "unknown";
-  const threshold = event?.threshold ?? "unknown";
-  const timestamp = event?.timestamp ?? new Date().toISOString();
 
   const sourceEmail = process.env.SES_FROM_EMAIL;
-  const fallbackEmail = process.env.LOW_SEATS_NOTIFY_EMAIL || sourceEmail;
-  const notifyEmail = event?.email || fallbackEmail;
 
   const command = new SendEmailCommand({
     Source: sourceEmail,
     Destination: {
-      ToAddresses: [notifyEmail],
+      ToAddresses: [to],
     },
     Message: {
       Subject: {
-        Data: `Seats are running low: ${eventTitle}`,
+        Data: `Not enough seats available: ${eventTitle}`,
       },
       Body: {
         Html: {
           Data: `
             <p>Hi ${attendeeName},</p>
-            <p>Thanks for registering for <strong>${eventTitle}</strong> &mdash; heads up, this event is almost full!</p>
-            <ul>
-              <li><strong>Seats remaining:</strong> ${remainingSeats}</li>
-              <li><strong>Threshold:</strong> ${threshold}</li>
-              <li><strong>As of:</strong> ${timestamp}</li>
-            </ul>
+            <p>You requested <strong>${ticketcount}</strong> ticket(s) for <strong>${eventTitle}</strong>, but only <strong>${remainingSeats}</strong> seat(s) are currently available.</p>
+            <p>Please try registering again with a smaller number of tickets.</p>
           `,
         },
         Text: {
-          Data: `Hi ${attendeeName}, ${eventTitle} is almost full. Remaining: ${remainingSeats} (threshold: ${threshold}) as of ${timestamp}.`,
+          Data: `Hi ${attendeeName}, you requested ${ticketcount} ticket(s) for ${eventTitle}, but only ${remainingSeats} seat(s) are currently available. Please try registering again with a smaller number of tickets.`,
         },
       },
     },
@@ -44,10 +38,11 @@ export const handler = async (event) => {
 
   const result = await sesClient.send(command);
 
-  console.log("Low-seats notification sent", {
+  console.log("Seats-unavailable notification sent", {
     eventId,
+    ticketcount,
     remainingSeats,
-    notifyEmail,
+    to,
     messageId: result.MessageId,
   });
 

@@ -1,15 +1,14 @@
-name: Deploy (Blue-Green to AWS via SSH)
+name: CD Workflow
 
 on:
   workflow_run:
-    workflows: ["CI"]
+    workflows: ["CI Workflow"]
     types: [completed]
     branches: [main]
   workflow_dispatch: {}
 
 permissions:
   contents: read
-  packages: write
 
 jobs:
   deploy:
@@ -23,8 +22,8 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Log in to GitHub Container Registry
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+      - name: Log in to Docker Hub
+        run: echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
       - name: Write .env (source for the K8s app-secrets Secret)
         env:
@@ -39,10 +38,11 @@ jobs:
           printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
 
-      - name: Deploy (build, push to GHCR, SSH in for blue-green cutover)
+      - name: Deploy (build, push to Docker Hub, SSH in for blue-green cutover)
         env:
           SERVER_HOST: ${{ secrets.SERVER_HOST }}
           SSH_KEY: /home/runner/.ssh/deploy_key
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
         run: |
           export TAG="$(git rev-parse --short HEAD)"
           bash k8s/aws/deploy-aws.sh

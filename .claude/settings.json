@@ -14,7 +14,14 @@
       "Bash(node --check /tmp/login-inline.js)",
       "Bash(curl -s -X POST http://localhost:5006/api/v1/auth/login -H 'Content-Type: application/json' -d '{\"username\":\"admin\",\"password\":\"0QKViAUvlGJhXIMj\"}')",
       "Bash(curl -s -X POST http://localhost:5006/api/v1/auth/login -H 'Content-Type: application/json' -d '{\"username\":\"admin\",\"password\":\"wrong\"}')",
-      "Bash(curl -s http://localhost:5006/health)"
+      "Bash(curl -s http://localhost:5006/health)",
+      "Bash(xargs -r docker rm -f)",
+      "Bash(grep -v \"variable is not set\\\\|attribute \\\\`version\\\\`\")",
+      "Bash(echo \"compose config exit: $?\")",
+      "Bash(echo \"docker compose config exit code: $?\")",
+      "Bash(grep -i \"\\\\.pem$\\\\|newevent-k3s-key\")",
+      "Bash(chmod +x \"/Volumes/TL - Mac/cloud_computing_class_work/k8s/rollback.sh\")",
+      "Bash(bash -n \"/Volumes/TL - Mac/cloud_computing_class_work/k8s/rollback.sh\")"
     ]
   }
 }

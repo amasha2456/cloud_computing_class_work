@@ -88,14 +88,14 @@ services:
       DB_PASSWORD: postgres
       DB_NAME: newevent
       EVENT_SERVICE_URL: http://event-service:5001
-      EMAIL_SERVICE_URL: http://email-service:5004
       SEATS_AVAILABLE_THRESHOLD: 10
       JWT_SECRET: ${JWT_SECRET}
       INTERNAL_SERVICE_TOKEN: ${INTERNAL_SERVICE_TOKEN}
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
       AWS_REGION: ${AWS_REGION}
-      LOW_SEATS_LAMBDA_NAME: ${LOW_SEATS_LAMBDA_NAME}
+      SEATS_UNAVAILABLE_LAMBDA_NAME: ${SEATS_UNAVAILABLE_LAMBDA_NAME}
+      REGISTRATION_CONFIRMATION_LAMBDA_NAME: ${REGISTRATION_CONFIRMATION_LAMBDA_NAME}
       CORS_ORIGIN: ${CORS_ORIGIN}
 
     ports:
@@ -104,22 +104,6 @@ services:
     depends_on:
       - postgres
       - event-service
-      - email-service
-
-  email-service:
-    build:
-      context: ./services/email-service
-
-    environment:
-      PORT: 5004
-      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
-      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
-      AWS_REGION: ${AWS_REGION}
-      SES_FROM_EMAIL: ${SES_FROM_EMAIL}
-      CORS_ORIGIN: ${CORS_ORIGIN}
-
-    ports:
-      - "5004:5004"
 
   auth-service:
     build:

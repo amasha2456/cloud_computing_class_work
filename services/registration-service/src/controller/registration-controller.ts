@@ -2,26 +2,16 @@ import type { Response, Request } from "express";
 import { error, timeStamp } from "node:console";
 import pool from "../db.js";
 import axios from "axios";
-import { triggerLowSeatsNotification } from "../lambda.js";
+import { triggerSeatsUnavailableNotification, triggerRegistrationConfirmation } from "../lambda.js";
 import { hasEnoughSeats, isBelowThreshold } from "../seat-logic.js";
 
 const EVENT_SERVICE_URL = process.env.EVENT_SERVICE_URL;
-const EMAIL_SERVICE_URL = process.env.EMAIL_SERVICE_URL;
 const SEATS_AVAILABLE_THRESHOLD = Number(process.env.SEATS_AVAILABLE_THRESHOLD);
 async function getEventById(eventId: string) {
   const result = await axios.get(
     `${EVENT_SERVICE_URL}/api/v1/event/get/${eventId}`,
   );
   return result.data;
-}
-
-async function sendEmail(to: string, subject: string, html: string) {
-  const res = await axios.post(`${EMAIL_SERVICE_URL}/api/v1/email/send-email`, {
-    to,
-    subject,
-    html,
-  });
-  return res.data;
 }
 
 async function updateEventSeats(eventId: string, seatsAvailable: number) {
@@ -80,14 +70,15 @@ export async function createRegistration(req: Request, res: Response) {
       throw e;
     }
     if (!hasEnoughSeats(ticketcount, event.seatsavailable)) {
-      triggerLowSeatsNotification({
+      triggerSeatsUnavailableNotification({
         eventId,
         eventTitle: event.title,
         attendeeName,
-        email,
+        to: email,
+        ticketcount,
         remainingSeats: event.seatsavailable,
       }).catch((e) => {
-        console.error("Failed to trigger low-seats notification", e);
+        console.error("Failed to trigger seats-unavailable notification", e);
       });
       return res.status(400).json({
         message: "Not enough seats available",
@@ -118,31 +109,16 @@ export async function createRegistration(req: Request, res: Response) {
       console.error("Failed to update event seatsAvailable", e);
     }
 
-    if (isBelowThreshold(newSeatsAvailable, SEATS_AVAILABLE_THRESHOLD)) {
-      triggerLowSeatsNotification({
-        eventId,
-        eventTitle: event.title,
-        attendeeName,
-        email,
-        remainingSeats: newSeatsAvailable,
-      }).catch((e) => {
-        console.error("Failed to trigger low-seats notification", e);
-      });
-    }
-
-    try {
-      await sendEmail(
-        email,
-        "Registration Confirmed",
-        `
-        <p>Dear ${attendeeName},</p>
-        <p>Your registration for <strong>${event.title}</strong> is confirmed for ${ticketcount} ticket(s).</p>
-        <p>We look forward to seeing you there!</p>
-        `,
-      );
-    } catch (e) {
-      console.error("Failed to send registration confirmation email", e);
-    }
+    triggerRegistrationConfirmation({
+      to: email,
+      attendeeName,
+      eventTitle: event.title,
+      ticketcount,
+      remainingSeats: newSeatsAvailable,
+      seatsLow: isBelowThreshold(newSeatsAvailable, SEATS_AVAILABLE_THRESHOLD),
+    }).catch((e) => {
+      console.error("Failed to trigger registration confirmation email", e);
+    });
 
     return res.status(201).json(result.rows[0]);
   } catch (e: any) {

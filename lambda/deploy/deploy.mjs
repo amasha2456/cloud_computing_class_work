@@ -17,18 +17,19 @@ import {
 import { readFileSync } from "node:fs";
 
 const REGION = process.env.AWS_REGION || "us-east-2";
-const ROLE_NAME = "low-seats-notifier-role";
-const FUNCTION_NAME = "low-seats-notifier";
+const FUNCTION_NAME = process.env.FUNCTION_NAME;
+const ROLE_NAME = process.env.ROLE_NAME || `${FUNCTION_NAME}-role`;
 const SES_FROM_EMAIL = process.env.SES_FROM_EMAIL;
-const LOW_SEATS_NOTIFY_EMAIL = process.env.LOW_SEATS_NOTIFY_EMAIL || SES_FROM_EMAIL;
+const LOW_SEATS_NOTIFY_EMAIL = process.env.LOW_SEATS_NOTIFY_EMAIL;
 const ZIP_PATH = process.env.ZIP_PATH;
 
-if (!SES_FROM_EMAIL || !ZIP_PATH) {
-  console.error("SES_FROM_EMAIL and ZIP_PATH env vars are required");
+if (!FUNCTION_NAME || !SES_FROM_EMAIL || !ZIP_PATH) {
+  console.error("FUNCTION_NAME, SES_FROM_EMAIL and ZIP_PATH env vars are required");
   process.exit(1);
 }
 
-const envVars = { SES_FROM_EMAIL, LOW_SEATS_NOTIFY_EMAIL };
+const envVars = { SES_FROM_EMAIL };
+if (LOW_SEATS_NOTIFY_EMAIL) envVars.LOW_SEATS_NOTIFY_EMAIL = LOW_SEATS_NOTIFY_EMAIL;
 
 const iam = new IAMClient({ region: REGION });
 const lambda = new LambdaClient({ region: REGION });
@@ -68,7 +69,7 @@ async function ensureRole() {
     new CreateRoleCommand({
       RoleName: ROLE_NAME,
       AssumeRolePolicyDocument: trustPolicy,
-      Description: "Execution role for the low-seats-notifier Lambda",
+      Description: `Execution role for the ${FUNCTION_NAME} Lambda`,
     }),
   );
   console.log(`Created role: ${created.Role.Arn}`);
@@ -84,7 +85,7 @@ async function ensureRole() {
   await iam.send(
     new PutRolePolicyCommand({
       RoleName: ROLE_NAME,
-      PolicyName: "low-seats-notifier-ses-send",
+      PolicyName: `${FUNCTION_NAME}-ses-send`,
       PolicyDocument: sesPolicy,
     }),
   );
@@ -146,7 +147,7 @@ async function ensureFunction(roleArn) {
       Timeout: 10,
       MemorySize: 128,
       Environment: { Variables: envVars },
-      Description: "Sends a notification email when an event's seatsAvailable drops below threshold",
+      Description: `Deployed via lambda/deploy/deploy.mjs (${FUNCTION_NAME})`,
     }),
   );
 
