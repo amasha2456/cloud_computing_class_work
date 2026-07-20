@@ -30,6 +30,19 @@ jobs:
           APP_ENV_FILE: ${{ secrets.APP_ENV_FILE }}
         run: printf '%s\n' "$APP_ENV_FILE" > .env
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Deploy Lambda functions
+        run: |
+          export AWS_ACCESS_KEY_ID=$(grep '^AWS_ACCESS_KEY_ID=' .env | cut -d= -f2-)
+          export AWS_SECRET_ACCESS_KEY=$(grep '^AWS_SECRET_ACCESS_KEY=' .env | cut -d= -f2-)
+          export AWS_REGION=$(grep '^AWS_REGION=' .env | cut -d= -f2-)
+          export SES_FROM_EMAIL=$(grep '^SES_FROM_EMAIL=' .env | cut -d= -f2-)
+          (cd lambda/deploy && npm install)
+          bash lambda/deploy/deploy-all.sh
+
       - name: Write SSH private key
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}

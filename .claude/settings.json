@@ -21,7 +21,17 @@
       "Bash(echo \"docker compose config exit code: $?\")",
       "Bash(grep -i \"\\\\.pem$\\\\|newevent-k3s-key\")",
       "Bash(chmod +x \"/Volumes/TL - Mac/cloud_computing_class_work/k8s/rollback.sh\")",
-      "Bash(bash -n \"/Volumes/TL - Mac/cloud_computing_class_work/k8s/rollback.sh\")"
+      "Bash(bash -n \"/Volumes/TL - Mac/cloud_computing_class_work/k8s/rollback.sh\")",
+      "Bash(dig +short ec2-3-144-151-71.us-east-2.compute.amazonaws.com)",
+      "Bash(host ec2-3-144-151-71.us-east-2.compute.amazonaws.com)",
+      "Bash(nslookup ec2-3-144-151-71.us-east-2.compute.amazonaws.com)",
+      "Bash(command -v aws)",
+      "Bash(aws sts *)",
+      "Bash(command -v gh)",
+      "Bash(command -v zip)",
+      "Bash(chmod +x \"/Volumes/TL - Mac/cloud_computing_class_work/lambda/deploy/deploy-all.sh\")",
+      "Bash(bash -n \"/Volumes/TL - Mac/cloud_computing_class_work/lambda/deploy/deploy-all.sh\")",
+      "Bash(bash -n lambda/deploy/deploy-all.sh)"
     ]
   }
 }
