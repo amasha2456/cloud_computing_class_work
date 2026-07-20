@@ -31,7 +31,9 @@
       "Bash(command -v zip)",
       "Bash(chmod +x \"/Volumes/TL - Mac/cloud_computing_class_work/lambda/deploy/deploy-all.sh\")",
       "Bash(bash -n \"/Volumes/TL - Mac/cloud_computing_class_work/lambda/deploy/deploy-all.sh\")",
-      "Bash(bash -n lambda/deploy/deploy-all.sh)"
+      "Bash(bash -n lambda/deploy/deploy-all.sh)",
+      "Bash(dig +short ec2-18-225-2-69.us-east-2.compute.amazonaws.com)",
+      "Bash(dig ec2-18-225-2-69.us-east-2.compute.amazonaws.com A +short)"
     ]
   }
 }

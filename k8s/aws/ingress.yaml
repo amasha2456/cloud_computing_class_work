@@ -6,7 +6,8 @@ metadata:
 spec:
   ingressClassName: traefik
   rules:
-    - http:
+    - host: app.amashacloud.freedev.app
+      http:
         paths:
           - path: /api/v1/event
             pathType: Prefix
@@ -36,6 +37,13 @@ spec:
                 name: auth-service
                 port:
                   number: 5006
+          - path: /api/v1/collect
+            pathType: Prefix
+            backend:
+              service:
+                name: analytics-service
+                port:
+                  number: 5005
           - path: /
             pathType: Prefix
             backend:
@@ -43,3 +51,23 @@ spec:
                 name: frontend-service
                 port:
                   number: 80
+    - host: performance.metrices.amashacloud.freedev.app
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: grafana
+                port:
+                  number: 3000
+    - host: web.analytics.amashacloud.freedev.app
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: superset
+                port:
+                  number: 8088
