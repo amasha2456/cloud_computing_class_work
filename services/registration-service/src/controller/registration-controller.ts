@@ -2,11 +2,15 @@ import type { Response, Request } from "express";
 import { error, timeStamp } from "node:console";
 import pool from "../db.js";
 import axios from "axios";
-import { triggerSeatsUnavailableNotification, triggerRegistrationConfirmation } from "../lambda.js";
+import {
+  triggerSeatsUnavailableNotification,
+  triggerRegistrationConfirmation,
+} from "../lambda.js";
 import { hasEnoughSeats, isBelowThreshold } from "../seat-logic.js";
 
 const EVENT_SERVICE_URL = process.env.EVENT_SERVICE_URL;
-const SEATS_AVAILABLE_THRESHOLD = Number(process.env.SEATS_AVAILABLE_THRESHOLD);
+const SEATS_AVAILABLE_THRESHOLD =
+  Number(process.env.SEATS_AVAILABLE_THRESHOLD) || 10;
 async function getEventById(eventId: string) {
   const result = await axios.get(
     `${EVENT_SERVICE_URL}/api/v1/event/get/${eventId}`,
