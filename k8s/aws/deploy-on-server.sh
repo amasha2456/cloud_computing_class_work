@@ -78,6 +78,13 @@ kubectl rollout status deployment/superset -n newevent --timeout=300s || \
 kubectl rollout status deployment/postgres-exporter -n newevent --timeout=60s || \
   echo "WARNING: postgres-exporter rollout did not finish in time, check: kubectl get pods -n newevent -l app=postgres-exporter"
 
+echo "== Applying cert-manager (idempotent - installs on first run, no-op after) =="
+kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.16.2/cert-manager.yaml
+kubectl wait --for=condition=Available deployment/cert-manager -n cert-manager --timeout=120s
+kubectl wait --for=condition=Available deployment/cert-manager-webhook -n cert-manager --timeout=120s
+kubectl wait --for=condition=Available deployment/cert-manager-cainjector -n cert-manager --timeout=120s
+kubectl apply -f k8s/cert-manager-issuer.yaml
+
 echo "== Applying ingress (idempotent) =="
 kubectl apply -f k8s/aws/ingress.yaml
 

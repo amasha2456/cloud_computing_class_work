@@ -3,8 +3,16 @@ kind: Ingress
 metadata:
   name: newevent-ingress
   namespace: newevent
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
 spec:
   ingressClassName: traefik
+  tls:
+    - hosts:
+        - app.amashacloud.freedev.app
+        - performance.metrices.amashacloud.freedev.app
+        - web.analytics.amashacloud.freedev.app
+      secretName: newevent-tls
   rules:
     - host: app.amashacloud.freedev.app
       http:

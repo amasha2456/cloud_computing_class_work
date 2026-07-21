@@ -33,7 +33,15 @@
       "Bash(bash -n \"/Volumes/TL - Mac/cloud_computing_class_work/lambda/deploy/deploy-all.sh\")",
       "Bash(bash -n lambda/deploy/deploy-all.sh)",
       "Bash(dig +short ec2-18-225-2-69.us-east-2.compute.amazonaws.com)",
-      "Bash(dig ec2-18-225-2-69.us-east-2.compute.amazonaws.com A +short)"
+      "Bash(dig ec2-18-225-2-69.us-east-2.compute.amazonaws.com A +short)",
+      "Bash(timeout 8 bash -c \"cat < /dev/null > /dev/tcp/18.225.2.69/80\")",
+      "Bash(timeout 8 bash -c \"cat < /dev/null > /dev/tcp/18.225.2.69/22\")",
+      "Bash(curl -sv --max-time 8 http://18.225.2.69/)",
+      "Bash(curl -sv --max-time 8 -H \"Host: app.amashacloud.freedev.app\" http://18.225.2.69/)",
+      "Bash(curl -sv --max-time 8 https://18.225.2.69/ -k)",
+      "Bash(curl -s -o /dev/null --max-time 8 -w \"HTTP %{http_code}\\\\n\" -H \"Host: app.amashacloud.freedev.app\" http://18.225.2.69/)",
+      "Bash(dig +short app.analytics.amashacloud.freedev.app)",
+      "Bash(dig +short web.analytics.amashacloud.freedev.app)"
     ]
   }
 }
